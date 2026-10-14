@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>7nm: Silicon Era (GDD v3.1)</title>
+  <title>7nm: Silicon Era (GDD v3.2)</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js CDN -->
@@ -40,7 +40,6 @@
     .font-mono-num {
       font-family: 'JetBrains Mono', monospace;
     }
-    /* Custom scrollbars */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -88,12 +87,12 @@
           <span id="hud-fcf" class="text-base font-bold text-sky-400 font-mono-num">+$1.20B</span>
         </div>
         <div>
-          <span class="text-xs text-slate-400 block" data-i18n="lbl_active_assets">Total Assets (8Y Depr)</span>
+          <span class="text-xs text-slate-400 block" data-i18n="lbl_active_assets">Total Assets (6Y Depr)</span>
           <span id="hud-assets" class="text-base font-bold text-slate-200 font-mono-num">$18.50B</span>
         </div>
         <div>
-          <span class="text-xs text-slate-400 block" data-i18n="lbl_qtr_depr">Qtr Depreciation (3.125%)</span>
-          <span id="hud-depr" class="text-base font-bold text-rose-400 font-mono-num">-$0.58B</span>
+          <span class="text-xs text-slate-400 block" data-i18n="lbl_qtr_depr">Qtr Depreciation (4.167%)</span>
+          <span id="hud-depr" class="text-base font-bold text-rose-400 font-mono-num">-$0.77B</span>
         </div>
       </div>
 
@@ -101,7 +100,7 @@
       <div class="flex items-center gap-3">
         <!-- Bilingual Toggle Button -->
         <button id="lang-btn" onclick="toggleLanguage()" class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition flex items-center gap-1.5 shadow-sm">
-          <span id="lang-flag">🌐</span>
+          <span>🌐</span>
           <span id="lang-text">中文</span>
         </button>
 
@@ -116,7 +115,7 @@
   <!-- Main Container -->
   <main class="max-w-7xl mx-auto w-full p-4 sm:p-6 flex-1">
 
-    <!-- Screen 1: Title & Faction Selection Screen -->
+    <!-- Screen 1: Title & Faction Selection Screen (Defaults to English) -->
     <section id="screen-title" class="max-w-4xl mx-auto py-10">
       <div class="text-center space-y-4 mb-10">
         <div class="inline-block px-3 py-1 bg-sky-500/10 border border-sky-500/30 rounded-full text-sky-400 text-xs font-semibold uppercase tracking-widest">
@@ -126,7 +125,7 @@
           7nm: <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-teal-300 to-indigo-400">SILICON ERA</span>
         </h1>
         <p class="text-slate-400 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed" data-i18n="title_desc">
-          Lead a semiconductor giant across 48 quarters. Navigate the multi-billion dollar CapEx crunch, 8-year depreciation schedules, S-curve yield learning, and the historic shift toward EUV lithography and AI compute.
+          Lead a semiconductor giant across 48 quarters. Navigate the multi-billion dollar CapEx crunch, 6-year straight-line depreciation schedules, node cannibalization dynamics, and inevitable pandemic demand shocks.
         </p>
       </div>
 
@@ -186,12 +185,12 @@
       <!-- Key Mechanics Notice Card -->
       <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-3 font-mono">
         <div>
-          <span class="text-sky-400 font-bold" data-i18n="note_8y_depr">8-Year Depreciation Active:</span> 
-          <span data-i18n="note_8y_depr_detail">Quarterly depreciation is set to 3.125% per quarter, providing extended cash runways.</span>
+          <span class="text-sky-400 font-bold" data-i18n="note_6y_depr">6-Year Depreciation:</span> 
+          <span data-i18n="note_6y_depr_detail">Quarterly depreciation is calibrated to 4.167% per quarter (24 Qtrs).</span>
         </div>
         <div>
-          <span class="text-amber-400 font-bold" data-i18n="note_grace">Tiered Bankruptcy:</span> 
-          <span data-i18n="note_grace_detail">Liquidity warning triggers at Q2; final default only occurs after 4 consecutive quarters < $0.</span>
+          <span class="text-amber-400 font-bold" data-i18n="note_cannibal">Cannibalization:</span> 
+          <span data-i18n="note_cannibal_detail">New node release reduces preceding node orders by 30%, and the generation before by an additional 30%.</span>
         </div>
       </div>
     </section>
@@ -199,7 +198,7 @@
     <!-- Screen 2: Interactive Game Dashboard -->
     <section id="screen-game" class="hidden space-y-6">
 
-      <!-- Alert Banners (Macro Events / Liquidity warnings) -->
+      <!-- Alert Banners -->
       <div id="liquidity-banner" class="hidden p-4 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-200 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <span class="text-xl">⚠️</span>
@@ -244,7 +243,7 @@
 
         <!-- Node Grid -->
         <div id="node-cards-container" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <!-- Dynamic Node Cards injected here -->
+          <!-- Dynamic Node Cards -->
         </div>
       </div>
 
@@ -299,7 +298,7 @@
 
         </div>
 
-        <!-- Packaging & Advanced Facilities -->
+        <!-- Packaging Facility -->
         <div class="bg-brand-card p-5 rounded-xl border border-brand-border flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
             <div class="flex items-center gap-2">
@@ -319,7 +318,6 @@
       <!-- Tab 3: Customers & Contracts -->
       <div id="tab-market" class="hidden space-y-4">
         
-        <!-- Bipolar Market Demand Indicators -->
         <div class="grid md:grid-cols-2 gap-4">
           <div class="bg-brand-card p-4 rounded-xl border border-brand-border">
             <div class="flex justify-between items-center mb-1">
@@ -341,11 +339,10 @@
           </div>
         </div>
 
-        <!-- Tier 1 Client Contract Status -->
         <div class="bg-brand-card p-5 rounded-xl border border-brand-border space-y-4">
           <h4 class="font-bold text-white text-sm" data-i18n="contracts_heading">Active Client Supply Agreements</h4>
           <div id="contracts-list" class="space-y-3">
-            <!-- Dynamic Client Items Injected Here -->
+            <!-- Dynamic Contracts -->
           </div>
         </div>
       </div>
@@ -444,7 +441,7 @@
 
   <!-- Global Footer -->
   <footer class="border-t border-brand-border/60 bg-brand-card/50 py-3 px-4 text-center text-xs text-slate-500 font-mono">
-    7nm: Silicon Era · GDD v3.1 Compliant · 8-Year Depreciation Engine (3.125%/Q) · Mode I vs Mode T
+    7nm: Silicon Era · GDD v3.2 Compliant · 6-Year Depreciation Engine (4.167%/Q) · Node Cannibalization (-30%/-30%) · Guaranteed Pandemic
   </footer>
 
   <!-- Simulation Logic Script -->
@@ -452,16 +449,16 @@
     // ==========================================
     // 1. BILINGUAL DICTIONARY SYSTEM (EN / ZH)
     // ==========================================
-    let currentLang = 'en'; // DEFAULT TO ENGLISH
+    let currentLang = 'en'; // Defaults to English
 
     const i18nDict = {
       en: {
         lbl_cash_reserves: "Cash Reserves",
         lbl_last_fcf: "Last Qtr FCF",
-        lbl_active_assets: "Total Assets (8Y Depr)",
-        lbl_qtr_depr: "Qtr Depreciation (3.125%)",
+        lbl_active_assets: "Total Assets (6Y Depr)",
+        lbl_qtr_depr: "Qtr Depreciation (4.167%)",
         btn_next_quarter: "Advance Quarter",
-        title_desc: "Lead a semiconductor giant across 48 quarters. Navigate the multi-billion dollar CapEx crunch, 8-year depreciation schedules, S-curve yield learning, and the historic shift toward EUV lithography and AI compute.",
+        title_desc: "Lead a semiconductor giant across 48 quarters. Navigate the multi-billion dollar CapEx crunch, 6-year straight-line depreciation schedules, node cannibalization dynamics, and inevitable pandemic demand shocks.",
         fac_i_cash: "$28.00B Initial Cash",
         fac_i_name: "Mode I (Pure Foundry Archetype)",
         fac_i_desc: "Dedicated pure-play foundry. Co-finances R&D with global Fabless clients through Open Innovation Platforms (OIP). Favors agile half-node cadence (16nm → 12nm → 7nm → 5nm → 3nm) and early EUV machine pre-orders.",
@@ -476,10 +473,10 @@
         fac_t_feat2: "High monopoly margins when execution succeeds",
         fac_t_feat3: "IDM trap: node delays drag down entire CPU portfolio",
         btn_choose_mode_t: "Select Mode T (IDM Model)",
-        note_8y_depr: "8-Year Depreciation Active:",
-        note_8y_depr_detail: "Quarterly depreciation is set to 3.125% per quarter, providing extended cash runways.",
-        note_grace: "Tiered Bankruptcy:",
-        note_grace_detail: "Liquidity warning triggers at Q2; final default only occurs after 4 consecutive quarters < $0.",
+        note_6y_depr: "6-Year Depreciation:",
+        note_6y_depr_detail: "Quarterly depreciation is calibrated to 4.167% per quarter (24 Qtrs).",
+        note_cannibal: "Cannibalization:",
+        note_cannibal_detail: "New node release reduces preceding node orders by 30%, and the generation before by an additional 30%.",
         warn_liquidity_title: "LIQUIDITY ALERT: Cash Reserves Below Zero!",
         btn_bridge_loan: "Take $2.5B Bridge Loan (8% Qtr Interest)",
         tab_nodes: "Process Nodes & R&D",
@@ -516,10 +513,10 @@
       zh: {
         lbl_cash_reserves: "账面现金储备",
         lbl_last_fcf: "上季度自由现金流",
-        lbl_active_assets: "总资产规模 (8年折旧)",
-        lbl_qtr_depr: "每季硬性折旧 (3.125%)",
+        lbl_active_assets: "总资产规模 (6年折旧)",
+        lbl_qtr_depr: "每季硬性折旧 (4.167%)",
         btn_next_quarter: "推进至下一季度",
-        title_desc: "在 48 个季度中执掌世界级半导体巨头。平衡百亿美元资本开支、8 年设备直线折旧、S 型良率爬坡曲线，以及向 EUV 光刻与 AI 算力海啸的历史性跨越。",
+        title_desc: "在 48 个季度中执掌世界级半导体巨头。平衡百亿美元资本开支、6 年设备直线折旧、先进制程对老制程的代际订单挤出，以及必然降临的全球疫情冲击。",
         fac_i_cash: "$28.00B 初始现金储备",
         fac_i_name: "I 模式（纯代工模式 Archetype）",
         fac_i_desc: "专注于纯晶圆代工。通过开放创新平台（OIP）与全球芯片设计客户共担研发风险。倡导小步快跑、微步快进哲学（16nm → 12nm → 7nm → 5nm → 3nm），尽早预订 ASML EUV 首批机台。",
@@ -534,10 +531,10 @@
         fac_t_feat2: "一旦技术研发突破可享受全链条超额暴利",
         fac_t_feat3: "IDM 陷阱：先进制程跳票拖垮整个 CPU 业务",
         btn_choose_mode_t: "选择 T 模式 (IDM 路线)",
-        note_8y_depr: "8 年直线折旧生效：",
-        note_8y_depr_detail: "每季度固定折旧率降至 3.125%，大幅减轻固定资产对当期利润的侵蚀。",
-        note_grace: "四季度债务阶梯宽限：",
-        note_grace_detail: "单季现金流负数完全安全；仅当总现金储备连续 4 个季度小于零才触发破产。",
+        note_6y_depr: "6 年直线折旧生效：",
+        note_6y_depr_detail: "每季度固定折旧率设定为 4.167%（24 个季度），兼顾前期现金流与资本纪律。",
+        note_cannibal: "代际订单挤出：",
+        note_cannibal_detail: "新制程推出导致上一代制程订单减 30%，再老一代制程再减 30%。",
         warn_liquidity_title: "流动性告急：账面现金储备跌破零点！",
         btn_bridge_loan: "借入 $2.5B 过桥商业贷款 (每季 8% 利息)",
         tab_nodes: "工艺节点与研发",
@@ -592,7 +589,7 @@
     }
 
     // ==========================================
-    // 2. SIMULATION STATE (GDD v3.1 CALIBRATED)
+    // 2. SIMULATION STATE (GDD v3.2)
     // ==========================================
     const G = {
       quarter: 1, // 1 to 48 (2014 Q1 to 2026 Q4)
@@ -604,35 +601,36 @@
       cash: 28.00, // in Billions
       lastFCF: 1.20,
       totalAssets: 18.50, // Capital Assets (Cleanrooms + Scanners)
-      depreciationRate: 0.03125, // 8-Year Straight Line (3.125% per quarter)
+      depreciationRate: 0.041667, // 6-Year Straight Line: 1/24 ≈ 4.167% per quarter
       negativeCashStreak: 0,
       activeDebt: 0.0,
       
       // Operations & CapEx
       rdBudget: 1.20, // $B/quarter
       fabs: 2,
-      fabsUnderConstruction: 0, // Queue: quarters left
+      fabsUnderConstruction: 0,
       duvScanners: 18,
       duvQueue: 0,
       euvScanners: 0,
       euvQueue: 0,
       hasCoWoS: false,
       
-      // Nodes Pipeline (Freedom to leapfrog)
+      // Nodes Pipeline (Sequential order for cannibalization)
       nodes: [
-        { id: '14nm', name: '14nm FinFET', era: '2014-2016', unlocked: true, ready: true, yield: 88, rdProgress: 100, asp: 5500, active: true },
-        { id: '12nm', name: '12nm Half-Node', era: '2016-2018', unlocked: true, ready: false, yield: 20, rdProgress: 35, asp: 7800, active: false },
-        { id: '7nm',  name: '7nm EUV/DUV', era: '2018-2020', unlocked: false, ready: false, yield: 15, rdProgress: 0, asp: 16500, active: false },
-        { id: '5nm',  name: '5nm EUV Native', era: '2020-2022', unlocked: false, ready: false, yield: 12, rdProgress: 0, asp: 23000, active: false },
-        { id: '3nm',  name: '3nm FinFlex', era: '2022-2024', unlocked: false, ready: false, yield: 10, rdProgress: 0, asp: 28500, active: false },
-        { id: '2nm',  name: '2nm GAA Ribbon', era: '2024-2026', unlocked: false, ready: false, yield: 8,  rdProgress: 0, asp: 35000, active: false }
+        { id: '14nm', name: '14nm FinFET', era: '2014-2016', unlocked: true, ready: true, yield: 88, rdProgress: 100, asp: 5500, active: true, baseRevenue: 3.50 },
+        { id: '12nm', name: '12nm Half-Node', era: '2016-2018', unlocked: true, ready: false, yield: 20, rdProgress: 35, asp: 7800, active: false, baseRevenue: 4.20 },
+        { id: '7nm',  name: '7nm EUV/DUV', era: '2018-2020', unlocked: false, ready: false, yield: 15, rdProgress: 0, asp: 16500, active: false, baseRevenue: 6.00 },
+        { id: '5nm',  name: '5nm EUV Native', era: '2020-2022', unlocked: false, ready: false, yield: 12, rdProgress: 0, asp: 23000, active: false, baseRevenue: 8.50 },
+        { id: '3nm',  name: '3nm FinFlex', era: '2022-2024', unlocked: false, ready: false, yield: 10, rdProgress: 0, asp: 28500, active: false, baseRevenue: 11.00 },
+        { id: '2nm',  name: '2nm GAA Ribbon', era: '2024-2026', unlocked: false, ready: false, yield: 8,  rdProgress: 0, asp: 35000, active: false, baseRevenue: 14.00 }
       ],
 
-      // Historical Dilemmas Resolved
+      // Guaranteed Pandemic: Randomly scheduled between Q20 and Q28
+      pandemicTriggerQuarter: Math.floor(Math.random() * 9) + 20, // e.g., Q20..Q28
+      pandemicOccurred: false,
+      macroShock: null, // { name, impacts: [] }
       dilemmasDone: {},
-      macroShock: null, // { type, duration, impacts: [] }
       
-      // History for Charts
       history: {
         labels: [],
         revenue: [],
@@ -681,7 +679,7 @@
     }
 
     // ==========================================
-    // 4. NODES, R&D & YIELD LOGIC
+    // 4. NODES, R&D & CANNIBALIZATION RENDERING
     // ==========================================
     function updateRDBudget(val) {
       G.rdBudget = parseFloat(val);
@@ -697,13 +695,40 @@
       renderNodes();
     }
 
+    // Calculate node cannibalization multiplier
+    function getNodeCannibalizationFactor(nodeIndex) {
+      // Find the most advanced ready node index
+      let highestReadyIdx = -1;
+      for (let i = G.nodes.length - 1; i >= 0; i--) {
+        if (G.nodes[i].ready) {
+          highestReadyIdx = i;
+          break;
+        }
+      }
+
+      if (nodeIndex === highestReadyIdx) {
+        return 1.0; // Leading ready node enjoys 100% full orders
+      } else if (nodeIndex === highestReadyIdx - 1) {
+        return 0.70; // Preceding node reduced by 30%
+      } else if (nodeIndex === highestReadyIdx - 2) {
+        return 0.49; // Preceding generation before that reduced by an additional 30% (0.7 * 0.7 = 0.49)
+      } else if (nodeIndex < highestReadyIdx - 2) {
+        return 0.25; // Legacy maintenance baseline
+      }
+      return 1.0;
+    }
+
     function renderNodes() {
       const container = document.getElementById('node-cards-container');
       container.innerHTML = '';
 
-      G.nodes.forEach(node => {
+      G.nodes.forEach((node, idx) => {
         const isZh = currentLang === 'zh';
         const card = document.createElement('div');
+        const cannibalFactor = getNodeCannibalizationFactor(idx);
+        const cannibalText = cannibalFactor < 1.0 ? 
+          `<span class="text-rose-400 font-mono text-xs block">${isZh ? `代际订单挤出: -${Math.round((1 - cannibalFactor) * 100)}%` : `Demand Cannibalization: -${Math.round((1 - cannibalFactor) * 100)}%`}</span>` : '';
+
         card.className = `p-4 rounded-xl border ${node.ready ? 'border-sky-500/50 bg-sky-950/10' : (node.unlocked ? 'border-slate-700 bg-brand-card' : 'border-slate-800 bg-brand-card/40 opacity-75')} flex flex-col justify-between space-y-3`;
 
         let actionButton = '';
@@ -728,10 +753,9 @@
               <span class="text-xs font-mono text-slate-400">${node.era}</span>
             </div>
             
-            <!-- Yield Indicator -->
             <div class="space-y-1 mb-3">
               <div class="flex justify-between text-xs font-mono">
-                <span class="text-slate-400">${isZh ? '芯片出片良率' : 'Process Yield'}:</span>
+                <span class="text-slate-400">${isZh ? '出片良率' : 'Process Yield'}:</span>
                 <span class="font-bold ${node.yield >= 75 ? 'text-emerald-400' : (node.yield >= 50 ? 'text-amber-400' : 'text-rose-400')}">${node.yield}%</span>
               </div>
               <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
@@ -739,7 +763,6 @@
               </div>
             </div>
 
-            <!-- R&D Progress -->
             ${!node.ready ? `
               <div class="space-y-1 mb-2">
                 <div class="flex justify-between text-xs font-mono">
@@ -753,9 +776,10 @@
             ` : ''}
 
             <div class="text-xs font-mono text-slate-400 flex justify-between pt-1 border-t border-slate-800">
-              <span>${isZh ? '合格晶圆基准单价' : 'Target Wafer ASP'}:</span>
+              <span>${isZh ? '基准单价' : 'Target Wafer ASP'}:</span>
               <span class="text-slate-200 font-bold">$${(node.asp).toLocaleString()}</span>
             </div>
+            ${cannibalText}
           </div>
           ${actionButton}
         `;
@@ -775,7 +799,7 @@
       G.totalAssets += 2.2;
       G.fabsUnderConstruction += 1;
       updateHUD();
-      alert(currentLang === 'zh' ? "GigaFab 洁净室土建已动工，需 4 个季度完成主体建造并通线。" : "New GigaFab Shell authorized. Construction will complete in 4 quarters.");
+      alert(currentLang === 'zh' ? "GigaFab 洁净室已动工，耗时 4 个季度完成主体建造并通线。" : "New GigaFab Shell authorized. Construction will complete in 4 quarters.");
     }
 
     function buyScanner(type) {
@@ -790,7 +814,7 @@
       if (isDUV) G.duvQueue += 1;
       else G.euvQueue += 1;
       updateHUD();
-      alert(currentLang === 'zh' ? `已锁定 1 台 ASML ${type} 光刻机订单，交期为 2 个季度。` : `Ordered 1 ASML ${type} tool. Estimated hookup time is 2 quarters.`);
+      alert(currentLang === 'zh' ? `已锁定 1 台 ASML ${type} 光刻机订单，交付周期为 2 个季度。` : `Ordered 1 ASML ${type} tool. Estimated hookup time is 2 quarters.`);
     }
 
     function buildCoWoS() {
@@ -817,12 +841,12 @@
     }
 
     // ==========================================
-    // 6. CUSTOMER CONTRACTS & BIDDING
+    // 6. CUSTOMER CONTRACTS
     // ==========================================
     const clients = [
-      { id: 'fruit', name: 'Fruit Corp (Mobile Flagship)', sector: 'consumer', boundNode: '14nm', minYield: 75, baseVol: 350, share: 0.85 },
-      { id: 'hyper', name: 'Hyperscaler Cloud Servers', sector: 'enterprise', boundNode: '14nm', minYield: 65, baseVol: 280, share: 0.70 },
-      { id: 'nova',  name: 'Nova Silicon (AI Compute)', sector: 'ai', boundNode: '5nm', minYield: 50, baseVol: 200, share: 0.00 }
+      { id: 'fruit', name: 'Fruit Corp (Mobile Flagship)', sector: 'consumer', boundNode: '14nm', minYield: 75 },
+      { id: 'hyper', name: 'Hyperscaler Cloud Servers', sector: 'enterprise', boundNode: '14nm', minYield: 65 },
+      { id: 'nova',  name: 'Nova Silicon (AI Compute)', sector: 'ai', boundNode: '5nm', minYield: 50 }
     ];
 
     function renderClients() {
@@ -886,7 +910,6 @@
 
       G.nodes.forEach(node => {
         if (node.active && !node.ready) {
-          // Progress R&D
           const progressGain = Math.round(budgetPerNode * 18 + (G.faction === 'I' ? 4 : 2));
           node.rdProgress = Math.min(100, node.rdProgress + progressGain);
           if (node.rdProgress >= 100) {
@@ -899,41 +922,35 @@
         if (node.ready && node.yield < 92) {
           let lithoMultiplier = 1.0;
           if (['7nm', '5nm', '3nm', '2nm'].includes(node.id) && G.euvScanners === 0) {
-            lithoMultiplier = 0.45; // DUV multi-patterning defect wall
+            lithoMultiplier = 0.45; // Defect penalty without EUV
           }
           const deltaYield = (1.5 * (G.rdBudget / 1.2) + Math.log(1 + 15) * 0.8) * ((100 - node.yield) / 100) * lithoMultiplier;
           node.yield = Math.min(94, Math.round(node.yield + Math.max(1, deltaYield)));
         }
       });
 
-      // 4. Macroeconomic Shocks Logic
+      // 4. Macro Shocks Engine (Guaranteed Pandemic & Random Storms)
       handleMacroShocks();
 
-      // 5. Quarterly Revenue & Expenses Calculation
+      // 5. Quarterly Revenue Calculation with Cannibalization Matrix
       let quarterlyRevenue = 0.0;
       
-      // Mature 14nm / 12nm Cash Cow Baseline Floor
-      const mature14 = G.nodes.find(n => n.id === '14nm');
-      if (mature14 && mature14.yield >= 75) {
-        quarterlyRevenue += 3.20; // $3.2B floor
-      }
-
-      // Advanced Node Deliveries
-      const node7 = G.nodes.find(n => n.id === '7nm');
-      if (node7 && node7.ready && node7.yield >= 65) {
-        quarterlyRevenue += 4.50 * (node7.yield / 100);
-      }
-      const node5 = G.nodes.find(n => n.id === '5nm');
-      if (node5 && node5.ready && node5.yield >= 65) {
-        quarterlyRevenue += 7.00 * (node5.yield / 100);
-      }
+      G.nodes.forEach((node, idx) => {
+        if (node.ready && node.yield >= 50) {
+          const cannibalMultiplier = getNodeCannibalizationFactor(idx);
+          const yieldFactor = node.yield / 100;
+          quarterlyRevenue += node.baseRevenue * yieldFactor * cannibalMultiplier;
+        }
+      });
 
       // Post-2021 AI Datacenter Exponential Surge
-      if (G.quarter >= 28) { // 2021 Q1 onwards
+      if (G.quarter >= 28) {
         const quartersPast28 = G.quarter - 28;
-        const aiDemandFactor = Math.pow(1.15, quartersPast28); // +15% compound per quarter
-        if (G.hasCoWoS && (node5?.ready || G.nodes.find(n => n.id === '3nm')?.ready)) {
-          quarterlyRevenue += 2.50 * aiDemandFactor;
+        const aiDemandFactor = Math.pow(1.15, quartersPast28);
+        const node5 = G.nodes.find(n => n.id === '5nm');
+        const node3 = G.nodes.find(n => n.id === '3nm');
+        if (G.hasCoWoS && (node5?.ready || node3?.ready)) {
+          quarterlyRevenue += 3.00 * aiDemandFactor;
         }
       }
 
@@ -947,21 +964,21 @@
         }
       }
 
-      // IDM Captive CPU Bonus
+      // Mode T Captive CPU Transfer Bonus
       if (G.faction === 'T') {
-        quarterlyRevenue += 1.80; // $1.8B internal x86 profit transfer
+        quarterlyRevenue += 1.80;
       }
 
-      // 8-Year Straight-Line Depreciation (3.125% per quarter)
+      // 6-Year Straight-Line Depreciation: 4.167% per quarter
       const quarterlyDepreciation = G.totalAssets * G.depreciationRate;
-      const fabOpex = G.fabs * 0.45; // $450M upkeep per cleanroom
+      const fabOpex = G.fabs * 0.45;
       const debtInterest = G.activeDebt * 0.08;
       const totalQuarterlyCosts = quarterlyDepreciation + fabOpex + G.rdBudget + debtInterest;
 
       G.lastFCF = quarterlyRevenue - totalQuarterlyCosts;
       G.cash += G.lastFCF;
 
-      // 6. Tiered Debt & Bankruptcy Logic (4 Consecutive Quarters Grace)
+      // 6. 4-Quarter Debt Grace Period
       if (G.cash < 0) {
         G.negativeCashStreak += 1;
         document.getElementById('liquidity-banner').classList.remove('hidden');
@@ -977,7 +994,7 @@
         document.getElementById('liquidity-banner').classList.add('hidden');
       }
 
-      // 7. Dilemma Triggers
+      // 7. Check Historical Dilemmas
       checkHistoricalDilemmas();
 
       // 8. Annual Q4 Tender Event
@@ -985,11 +1002,10 @@
         triggerAnnualLtaModal();
       }
 
-      // Record History for Charts
+      // Telemetry update
       G.history.labels.push(`${G.year} Q${G.qInYear}`);
       G.history.revenue.push(parseFloat(quarterlyRevenue.toFixed(2)));
       G.history.cash.push(parseFloat(G.cash.toFixed(2)));
-      
       const bestNode = G.nodes.filter(n => n.ready).slice(-1)[0] || G.nodes[0];
       G.history.leadYield.push(bestNode.yield);
 
@@ -999,11 +1015,46 @@
     }
 
     // ==========================================
-    // 8. HISTORICAL DILEMMAS & SHOCKS
+    // 8. MACRO SHOCKS & HISTORICAL DILEMMAS
     // ==========================================
+    function handleMacroShocks() {
+      if (G.macroShock) return;
+      const isZh = currentLang === 'zh';
+
+      // 1. Guaranteed Pandemic Check (Triggered between Q20 and Q28)
+      if (!G.pandemicOccurred && G.quarter >= G.pandemicTriggerQuarter) {
+        G.pandemicOccurred = true;
+        G.macroShock = {
+          name: isZh ? "全球疫情扰动与居家云算力超级牛市 (必然发生)" : "Global Pandemic Shock & Stay-at-home Boom (Guaranteed Event)",
+          impacts: [-0.05, -0.30, +0.10, +0.30] // 4-Quarter curve: -5%, -30%, +10%, +30%
+        };
+        showMacroBanner(
+          G.macroShock.name, 
+          isZh ? "疫情爆发！Q+1 恐慌 (-5%)，Q+2 出货急冻 (-30%)，随后将迎来居家电子与云算力超级牛市 (+10%, +30%)！" : "Pandemic strikes! Q1 panic (-5%), Q2 freeze (-30%), followed by explosive stay-at-home & cloud demand (+10%, +30%)!"
+        );
+        return;
+      }
+
+      // 2. Random Minor/Major Financial Storms
+      const roll = Math.random();
+      if (roll < 0.05 && G.quarter > 10) {
+        G.macroShock = {
+          name: isZh ? "小型宏观金融风暴" : "Minor Financial Shock",
+          impacts: [-0.05, -0.15, -0.05, -0.05]
+        };
+        showMacroBanner(G.macroShock.name, isZh ? "宏观消费电子需求低迷，连续 4 季度订单减少 5%-15%。" : "Consumer demand contraction. Orders reduced across 4 quarters.");
+      }
+    }
+
+    function showMacroBanner(title, desc) {
+      document.getElementById('macro-title').innerText = title;
+      document.getElementById('macro-desc').innerText = desc;
+      document.getElementById('macro-banner').classList.remove('hidden');
+    }
+
     function checkHistoricalDilemmas() {
       const isZh = currentLang === 'zh';
-      if (G.quarter === 8 && !G.dilemmasDone['Q8']) { // 2015 Q4
+      if (G.quarter === 8 && !G.dilemmasDone['Q8']) {
         showDilemma(
           'Q8',
           isZh ? "分水岭事件 1：EUV 光刻机早鸟押注" : "Dilemma 1: The EUV Lithography Wager",
@@ -1013,7 +1064,7 @@
           isZh ? "保守观望，坚持挖掘 DUV 多重曝光 (SAQP)" : "Wait and optimize DUV immersion (SAQP)",
           isZh ? "当期节约十余亿美元，但 7nm 及以下制程将面临 40% 良率爬坡阻力。" : "Saves capital now, but imposes 40% yield penalty on ≤7nm nodes."
         );
-      } else if (G.quarter === 16 && !G.dilemmasDone['Q16']) { // 2017 Q4
+      } else if (G.quarter === 16 && !G.dilemmasDone['Q16']) {
         showDilemma(
           'Q16',
           isZh ? "分水岭事件 2：节点微缩密度目标决策" : "Dilemma 2: Scaling Ambition",
@@ -1023,7 +1074,7 @@
           isZh ? "激进跃迁 (2.7x 强推钴金属互连)" : "Aggressive 2.7x Target with Cobalt Interconnects",
           isZh ? "研发所需投入增加 40%，但研发成功后单片晶圆可溢价 35%。" : "Demands 40% more R&D, but grants +35% wafer ASP upon maturity."
         );
-      } else if (G.quarter === 24 && !G.dilemmasDone['Q24']) { // 2019 Q4
+      } else if (G.quarter === 24 && !G.dilemmasDone['Q24']) {
         showDilemma(
           'Q24',
           isZh ? "分水岭事件 3：先进封装战略布局" : "Dilemma 3: Advanced Packaging Bet",
@@ -1054,7 +1105,7 @@
 
       if (id === 'Q8' && choice === 'A') {
         G.cash -= 1.50;
-        G.euvScanners += 2; // Early scanners delivered
+        G.euvScanners += 2;
         alert(currentLang === 'zh' ? "已向 ASML 交付定金，首批 2 台 EUV 提前就位装机！" : "EUV pre-order executed. 2 EUV tools delivered immediately!");
       } else if (id === 'Q24' && choice === 'A') {
         G.hasCoWoS = true;
@@ -1066,36 +1117,8 @@
       updateHUD();
     }
 
-    function handleMacroShocks() {
-      if (G.macroShock) return;
-
-      // Random shock probabilities
-      const roll = Math.random();
-      const isZh = currentLang === 'zh';
-
-      if (G.quarter === 25 && roll < 0.8) { // Global Pandemic event around 2020 Q1
-        G.macroShock = {
-          name: isZh ? "全球疫情扰动与居家云算力超级牛市" : "Global Pandemic Shock & Remote Cloud Boom",
-          impacts: [-0.05, -0.30, +0.10, +0.30]
-        };
-        showMacroBanner(G.macroShock.name, isZh ? "第1-2季出货受阻急冻，第3-4季受云算力与居家电子拉动暴增 30%！" : "Q1-Q2 supply freeze followed by a massive +30% remote work & cloud demand boom!");
-      } else if (roll < 0.05 && G.quarter > 10) { // Minor financial storm
-        G.macroShock = {
-          name: isZh ? "小型宏观金融风暴" : "Minor Financial Shock",
-          impacts: [-0.05, -0.15, -0.05, -0.05]
-        };
-        showMacroBanner(G.macroShock.name, isZh ? "宏观消费电子需求低迷，连续 4 季度订单减少 5%-15%。" : "Consumer demand contraction. Orders reduced across 4 quarters.");
-      }
-    }
-
-    function showMacroBanner(title, desc) {
-      document.getElementById('macro-title').innerText = title;
-      document.getElementById('macro-desc').innerText = desc;
-      document.getElementById('macro-banner').classList.remove('hidden');
-    }
-
     // ==========================================
-    // 9. ANNUAL LTA CONTRACT TENDER (30% DEPOSIT)
+    // 9. ANNUAL LTA CONTRACT TENDER (30% UPFRONT)
     // ==========================================
     function triggerAnnualLtaModal() {
       const isZh = currentLang === 'zh';
@@ -1104,7 +1127,6 @@
       const container = document.getElementById('lta-offers-container');
       container.innerHTML = '';
 
-      // Deposit injection calculation (30% upfront on expected contracts)
       const depositAmount = (4.50 * 0.30).toFixed(2);
 
       const offer = document.createElement('div');
@@ -1125,7 +1147,7 @@
     }
 
     function closeLtaModal() {
-      G.cash += 1.35; // 30% upfront advance
+      G.cash += 1.35;
       document.getElementById('modal-lta').classList.add('hidden');
       updateHUD();
       alert(currentLang === 'zh' ? "年度长协已签署！30% 预付款 $1.35B 已全额入账！" : "Master agreements executed! $1.35B (30% upfront cash deposit) deposited into reserves!");
@@ -1198,7 +1220,6 @@
       document.getElementById('hud-assets').innerText = `$${G.totalAssets.toFixed(2)}B`;
       document.getElementById('hud-depr').innerText = `-$${(G.totalAssets * G.depreciationRate).toFixed(2)}B`;
 
-      // Fab tab elements
       document.getElementById('fab-count').innerText = `${G.fabs} Fabs`;
       document.getElementById('fab-capacity').innerText = `${G.fabs * 80}k wpm`;
       document.getElementById('duv-count').innerText = `${G.duvScanners} Units`;
@@ -1269,7 +1290,6 @@
       }
     }
 
-    // Initial setup on load
     window.addEventListener('DOMContentLoaded', () => {
       applyLocalization();
     });
