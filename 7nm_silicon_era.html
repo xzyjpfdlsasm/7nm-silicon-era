@@ -1,0 +1,2090 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>7nm: 硅纪元 (Silicon Era) - 半导体产业博弈模拟</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN for live financial telemetry and yield S-curves -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Phosphor Icons for semiconductor cleanroom UI iconography -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+SC:wght@300;400;600;700&display=swap');
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Custom semiconductor industrial scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #090d16;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+    .glow-cyan {
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.25);
+    }
+    .glow-rose {
+      box-shadow: 0 0 20px rgba(244, 63, 94, 0.35);
+    }
+    .glow-amber {
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.25);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-cyan-500 selection:text-slate-950">
+
+  <!-- Top Navigation & Global Financial HUD -->
+  <header class="border-b border-slate-800 bg-slate-900/95 backdrop-blur sticky top-0 z-40 px-3 py-2.5">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <!-- Title, Timeline & Faction Badge -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 via-indigo-600 to-blue-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+          <i class="ph ph-cpu text-2xl text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-sm sm:text-base font-bold tracking-tight text-white font-mono" data-i18n="appTitle">7nm: 硅纪元</h1>
+            <span id="badgeMode" class="text-[10px] sm:text-[11px] px-2 py-0.5 rounded font-mono font-bold bg-cyan-950 text-cyan-300 border border-cyan-800">
+              I 模式 (TSMC / 代工)
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-400 font-mono mt-0.5" id="hudQuarter">
+            2014 Q1 (1/48)
+          </p>
+        </div>
+      </div>
+
+      <!-- Real-Time Financial KPI Ticker -->
+      <div class="flex items-center flex-wrap gap-2 text-xs font-mono">
+        <div class="bg-slate-950/80 border border-slate-800 px-2.5 py-1.5 rounded-lg flex items-center gap-2">
+          <span class="text-slate-400" data-i18n="kpiCash">现金储备:</span>
+          <span id="hudCash" class="font-bold text-emerald-400 text-sm">$28.00B</span>
+        </div>
+        <div class="bg-slate-950/80 border border-slate-800 px-2.5 py-1.5 rounded-lg flex items-center gap-2">
+          <span class="text-slate-400" data-i18n="kpiRev">当季营收:</span>
+          <span id="hudRev" class="font-bold text-cyan-400">$6.20B</span>
+        </div>
+        <div class="bg-slate-950/80 border border-slate-800 px-2.5 py-1.5 rounded-lg flex items-center gap-2">
+          <span class="text-slate-400" data-i18n="kpiFcf">净现金流:</span>
+          <span id="hudFcf" class="font-bold text-indigo-400">+$1.85B</span>
+        </div>
+        <div class="bg-slate-950/80 border border-slate-800 px-2.5 py-1.5 rounded-lg flex items-center gap-2">
+          <span class="text-slate-400" data-i18n="kpiCap">总产能:</span>
+          <span id="hudCap" class="font-bold text-amber-400">110k wpm</span>
+        </div>
+      </div>
+
+      <!-- Utility Control Group (Sound, Lang Switch, Next Quarter) -->
+      <div class="flex items-center gap-2">
+        <!-- Language Switcher Button -->
+        <button id="btnLangToggle" class="px-2.5 py-1.5 text-xs rounded-lg border border-slate-700 bg-slate-800 text-cyan-300 hover:bg-slate-700 font-mono font-bold transition flex items-center gap-1">
+          <i class="ph ph-translate text-sm"></i>
+          <span id="labelLang">EN</span>
+        </button>
+        <!-- Sound Effect Toggle Button -->
+        <button id="btnSoundToggle" class="p-2 text-xs rounded-lg border border-slate-800 bg-slate-950 text-cyan-400 hover:text-white transition" title="音效开关">
+          <i class="ph-bold ph-speaker-high text-base"></i>
+        </button>
+        <!-- Advance Quarter Button -->
+        <button id="btnAdvanceQuarter" class="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg shadow-cyan-950 active:scale-95 transition">
+          <span data-i18n="btnNextQuarter">推进至下季度</span>
+          <i class="ph-bold ph-caret-double-right"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Debt Grace Period & Warning Banner (Appears if cash < 0) -->
+  <div id="debtWarningBanner" class="hidden bg-rose-950/95 border-b border-rose-800 text-rose-200 px-4 py-2 text-xs font-mono">
+    <div class="max-w-7xl mx-auto w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <i class="ph-fill ph-warning-octagon text-rose-400 text-base animate-pulse"></i>
+        <span id="debtWarningText">警告：账面现金储备为负！进入债务宽限期 (第 1/4 季)。连续 4 季负债将触发正式破产清算！</span>
+      </div>
+      <button id="btnEmergencyRescue" class="underline hover:text-white font-bold text-[11px] bg-rose-900/70 px-2.5 py-1 rounded border border-rose-600 self-end sm:self-auto" data-i18n="btnRescue">
+        执行紧急救市与融资
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Application Body -->
+  <main class="max-w-7xl mx-auto w-full p-3 sm:p-4 flex-1 flex flex-col gap-4">
+
+    <!-- Tab Bar -->
+    <div class="flex items-center border-b border-slate-800 text-xs font-semibold gap-1 overflow-x-auto pb-0.5">
+      <button class="tab-btn px-4 py-2.5 border-b-2 border-cyan-500 text-cyan-400 flex items-center gap-1.5 whitespace-nowrap" data-target="tabOverview">
+        <i class="ph ph-chart-line-up text-base"></i> <span data-i18n="tabOverview">经营总览与财报</span>
+      </button>
+      <button class="tab-btn px-4 py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 whitespace-nowrap" data-target="tabRoadmap">
+        <i class="ph ph-atom text-base"></i> <span data-i18n="tabRoadmap">制程研发路线</span> (<span id="tabBadgeNodes">14nm</span>)
+      </button>
+      <button class="tab-btn px-4 py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 whitespace-nowrap" data-target="tabFabs">
+        <i class="ph ph-factory text-base"></i> <span data-i18n="tabFabs">晶圆厂与光刻机采购</span>
+      </button>
+      <button class="tab-btn px-4 py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 whitespace-nowrap" data-target="tabMarket">
+        <i class="ph ph-users-three text-base"></i> <span data-i18n="tabMarket">长协与算力市场</span>
+      </button>
+      <button class="tab-btn px-4 py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 whitespace-nowrap" data-target="tabNews">
+        <i class="ph ph-newspaper text-base"></i> <span data-i18n="tabNews">产业动态与黑天鹅</span>
+      </button>
+    </div>
+
+    <!-- TAB 1: Overview & Financial Trends -->
+    <div id="tabOverview" class="tab-content flex flex-col gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+        <!-- Revenue Card -->
+        <div class="bg-slate-900 border border-slate-800/80 p-3.5 rounded-xl">
+          <div class="text-[11px] text-slate-400 flex items-center justify-between">
+            <span data-i18n="cardRevTitle">当季营业收入 (Revenue)</span>
+            <i class="ph ph-coin-vertical text-cyan-400"></i>
+          </div>
+          <div class="text-xl font-bold font-mono text-white mt-1" id="statRev">$6.20B</div>
+          <div class="text-[10px] text-slate-500 mt-1 font-mono">
+            <span data-i18n="cardContractSub">长协保底:</span> <span id="statContractRev" class="text-slate-300">$5.10B</span> | 
+            <span data-i18n="cardSpotSub">现货:</span> <span id="statSpotRev" class="text-slate-300">$1.10B</span>
+          </div>
+        </div>
+
+        <!-- Depreciation Card -->
+        <div class="bg-slate-900 border border-slate-800/80 p-3.5 rounded-xl">
+          <div class="text-[11px] text-slate-400 flex items-center justify-between">
+            <span data-i18n="cardDeprecTitle">当季固定折旧 (Depreciation)</span>
+            <i class="ph ph-calculator text-rose-400"></i>
+          </div>
+          <div class="text-xl font-bold font-mono text-rose-400 mt-1" id="statDeprec">$1.20B</div>
+          <div class="text-[10px] text-slate-500 mt-1 font-mono">
+            <span data-i18n="cardAssetSub">5年直线折旧 | 总固定资产:</span> $<span id="statTotalAssets">24.0</span>B
+          </div>
+        </div>
+
+        <!-- Gross Margin Card -->
+        <div class="bg-slate-900 border border-slate-800/80 p-3.5 rounded-xl">
+          <div class="text-[11px] text-slate-400 flex items-center justify-between">
+            <span data-i18n="cardMarginTitle">综合毛利率 (Gross Margin)</span>
+            <i class="ph ph-percent text-indigo-400"></i>
+          </div>
+          <div class="text-xl font-bold font-mono text-indigo-300 mt-1" id="statMargin">54.2%</div>
+          <div class="text-[10px] text-slate-500 mt-1 font-mono">
+            <span data-i18n="cardYieldSub">前沿制程综合良率:</span> <span id="statPrimaryYield" class="text-emerald-400">89.0%</span>
+          </div>
+        </div>
+
+        <!-- Market Share Card -->
+        <div class="bg-slate-900 border border-slate-800/80 p-3.5 rounded-xl">
+          <div class="text-[11px] text-slate-400 flex items-center justify-between">
+            <span data-i18n="cardShareTitle">先进制程全球市占</span>
+            <i class="ph ph-globe-hemisphere-west text-amber-400"></i>
+          </div>
+          <div class="text-xl font-bold font-mono text-amber-300 mt-1" id="statMarketShare">52.0%</div>
+          <div class="text-[10px] text-slate-500 mt-1 font-mono" id="statMarketTrend">
+            <span data-i18n="statusOip">生态粘性高 / OIP联盟牢固</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Financial & Yield Charts -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Main Line Chart (Revenue & Cash) -->
+        <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wide flex items-center gap-1.5 font-mono">
+              <i class="ph-bold ph-chart-bar text-cyan-400"></i> <span data-i18n="chartFinanceTitle">48 季度营收、自由现金流与存量走势 ($B)</span>
+            </h3>
+            <span class="text-[10px] text-slate-500 font-mono" data-i18n="chartUnit">单位: 十亿美元 ($B)</span>
+          </div>
+          <div class="h-64 w-full relative">
+            <canvas id="chartFinance"></canvas>
+          </div>
+        </div>
+
+        <!-- Secondary Chart (Yield S-Curve) -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wide flex items-center gap-1.5 font-mono">
+              <i class="ph-bold ph-lightning text-amber-400"></i> <span data-i18n="chartYieldTitle">各先进制程良率 (Yield S-Curve)</span>
+            </h3>
+            <span class="text-[10px] text-slate-500 font-mono" data-i18n="chartYieldUnit">合格率 (%)</span>
+          </div>
+          <div class="h-64 w-full relative">
+            <canvas id="chartYield"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: Process Roadmap & R&D (Free-form nodes, halting & leapfrogging) -->
+    <div id="tabRoadmap" class="tab-content hidden flex flex-col gap-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          <div>
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="ph-fill ph-atom text-cyan-400 text-lg"></i> <span data-i18n="roadmapTitle">自主制程技术路线图 (自由立项与跨代跳步)</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5" data-i18n="roadmapSubtitle">
+              每个季度自由支配研发预算。你可以选择停留在成熟节点持续收割无风险现金流，也可以跨代跳步研发建立断代优势。
+            </p>
+          </div>
+          <!-- Global R&D Budget Slider -->
+          <div class="bg-slate-950 px-3 py-2 rounded-lg border border-slate-800 flex items-center gap-3 self-start sm:self-auto">
+            <div class="text-xs font-mono">
+              <div class="text-slate-400 text-[10px]" data-i18n="rdBudgetLabel">研发预算占比</div>
+              <span id="labelRdBudgetPct" class="text-cyan-400 font-bold">18%</span> (<span id="labelRdTotalDollars" class="text-slate-300">$1.12B</span>)
+            </div>
+            <input type="range" id="sliderRdPct" min="5" max="35" value="18" class="w-28 sm:w-36 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
+          </div>
+        </div>
+
+        <!-- Node Pipeline Grid -->
+        <div id="nodeGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 mt-4">
+          <!-- Dynamically injected node cards -->
+        </div>
+      </div>
+
+      <!-- Advanced Packaging CoWoS Section -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-lg bg-indigo-950 border border-indigo-700/60 flex items-center justify-center text-indigo-400 text-xl shrink-0">
+            <i class="ph-bold ph-cube"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm font-bold text-white" data-i18n="cowosTitle">CoWoS / 2.5D 先进晶圆级封装产线</h3>
+              <span id="badgeCoWoS" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700" data-i18n="cowosStatusUnbuilt">未投建</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-1 max-w-xl" data-i18n="cowosDesc">
+              后半程 AI 算力与 GPU 超大面积 Die 的决定性底座。未开启先进封装，将无法承接 2021 年之后爆发的数据中心 AI 暴利订单！
+            </p>
+          </div>
+        </div>
+        <button id="btnInvestCoWoS" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap shadow-lg shadow-indigo-950">
+          <i class="ph-bold ph-plus-circle"></i>
+          <span data-i18n="btnInvestCowos">投建封装产线 ($1.20B)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- TAB 3: Fabs & ASML Equipment Procurement -->
+    <div id="tabFabs" class="tab-content hidden flex flex-col gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- DUV Equipment Box -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold text-slate-200 uppercase font-mono" data-i18n="toolDuvTitle">193nm DUV 浸润式光刻机</h3>
+            <i class="ph ph-aperture text-slate-400 text-lg"></i>
+          </div>
+          <div class="text-2xl font-bold font-mono text-cyan-400 mt-2" id="valDuvTools">45 台</div>
+          <p class="text-[11px] text-slate-400 mt-1" data-i18n="toolDuvDesc">支撑 14nm、12nm 及初版 7nm 多重曝光。当前运转饱满。</p>
+          <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
+            <span class="text-slate-500 font-mono">$0.06B /台</span>
+            <button id="btnBuyDuv" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 rounded text-cyan-300 font-mono text-[11px]">
+              <span data-i18n="btnBuyDuv">增购 2台 ($0.12B)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- EUV Equipment Box -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold text-slate-200 uppercase font-mono" data-i18n="toolEuvTitle">0.33 NA EUV 极紫外光刻机</h3>
+            <i class="ph-bold ph-lightning text-amber-400 text-lg"></i>
+          </div>
+          <div class="text-2xl font-bold font-mono text-amber-400 mt-2" id="valEuvTools">0 台</div>
+          <p class="text-[11px] text-slate-400 mt-1" data-i18n="toolEuvDesc">7nm+、5nm 及 3nm 的核心利器。单批交期 2 个季度。</p>
+          <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
+            <span class="text-slate-500 font-mono">$0.35B /批 (2台)</span>
+            <button id="btnBuyEuv" class="px-2.5 py-1.5 bg-amber-950/60 hover:bg-amber-900/80 border border-amber-700/50 rounded text-amber-300 font-mono text-[11px]">
+              <span data-i18n="btnBuyEuv">预订 EUV 批次</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Cleanroom & Fab Capacity Box -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold text-slate-200 uppercase font-mono" data-i18n="toolFabTitle">GigaFab 洁净室与产能</h3>
+            <i class="ph ph-buildings text-indigo-400 text-lg"></i>
+          </div>
+          <div class="text-2xl font-bold font-mono text-indigo-400 mt-2" id="valTotalCap">110k wpm</div>
+          <p class="text-[11px] text-slate-400 mt-1">
+            <span data-i18n="toolFabPending">在建工程:</span> <span id="valPendingCap" class="text-emerald-400 font-mono">0k 片</span> (<span data-i18n="toolFabLead">工期 4季</span>)
+          </p>
+          <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
+            <span class="text-slate-500 font-mono">+10k 产能: $1.80B</span>
+            <button id="btnBuildFab" class="px-2.5 py-1.5 bg-indigo-950/60 hover:bg-indigo-900/80 border border-indigo-700/50 rounded text-indigo-300 font-mono text-[11px]">
+              <span data-i18n="btnBuildFab">动工新晶圆厂</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Asset Depreciation & Fixed Overhead Table -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wide font-mono mb-2" data-i18n="tableAssetHeader">
+          固定资产与每季度刚性折旧明细表 (5年 / 20季度 直线折旧法)
+        </h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs font-mono">
+            <thead class="bg-slate-950 text-slate-400 border-b border-slate-800">
+              <tr>
+                <th class="p-2.5" data-i18n="thAssetType">资产类型</th>
+                <th class="p-2.5" data-i18n="thAssetQty">现存数量 / 规模</th>
+                <th class="p-2.5" data-i18n="thAssetCost">原值总额 ($B)</th>
+                <th class="p-2.5" data-i18n="thAssetDeprec">当季折旧扣除额 ($B)</th>
+                <th class="p-2.5" data-i18n="thAssetStatus">状态与稼动率</th>
+              </tr>
+            </thead>
+            <tbody id="tableAssetsBody" class="divide-y divide-slate-800/60 text-slate-300">
+              <!-- Dynamically populated in JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: Customer Contracts & Long-Term Agreements (LTA) -->
+    <div id="tabMarket" class="tab-content hidden flex flex-col gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Consumer Silicon Curve Info -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <i class="ph-bold ph-device-mobile text-cyan-400 text-lg"></i>
+              <h3 class="text-sm font-bold text-white" data-i18n="marketConsumerTitle">消费电子市场 (Consumer Silicon)</h3>
+            </div>
+            <span class="text-[10px] font-mono text-cyan-400 bg-cyan-950 px-2 py-0.5 rounded border border-cyan-800" data-i18n="marketConsumerTag">稳健压舱石</span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed" data-i18n="marketConsumerDesc">
+            手机与 PC 芯片需求总量平缓（年均微增 3%-5%），但呈现极强的季度季节性波动：Q3/Q4 伴随秋季新机发布迎来旺季高峰 (+15%)，Q1/Q2 为传统淡季 (-15%)。
+          </p>
+          <div class="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs font-mono">
+            <span class="text-slate-400" data-i18n="demandIndexLabel">当前季度需求指数:</span>
+            <span id="marketValConsumer" class="text-cyan-300 font-bold">100 点 (基准)</span>
+          </div>
+        </div>
+
+        <!-- Datacenter & AI Curve Info -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <i class="ph-bold ph-hard-drives text-indigo-400 text-lg"></i>
+              <h3 class="text-sm font-bold text-white" data-i18n="marketAiTitle">数据中心与算力芯片 (Datacenter & AI)</h3>
+            </div>
+            <span class="text-[10px] font-mono text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded border border-indigo-800" data-i18n="marketAiTag">后期暴利海啸</span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed" data-i18n="marketAiDesc">
+            2014 至 2020 年平缓；自 2021 年（第 28 季）之后进入生成式 AI 军备竞赛，订单以每年 80%–150% 爆发！单晶圆出货单价高达 $25,000–$35,000！
+          </p>
+          <div class="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs font-mono">
+            <span class="text-slate-400" data-i18n="demandIndexLabel">当前季度需求指数:</span>
+            <span id="marketValAi" class="text-indigo-300 font-bold">25 点 (蓄势期)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Current Active Contracts Board -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-2.5">
+          <h3 class="text-xs font-bold text-slate-200 uppercase font-mono flex items-center gap-1.5">
+            <i class="ph-bold ph-file-text text-emerald-400"></i> <span data-i18n="activeLtaTitle">当前履行中的年度长协清单 (签约 30% 预付款已全额结算)</span>
+          </h3>
+          <span class="text-[10px] text-slate-500 font-mono" data-i18n="annualLtaSub">每年 Q4 开放下年度竞标</span>
+        </div>
+        <div id="activeContractsList" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <!-- Dynamically populated contracts -->
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: News, Intelligence & Macro Shocks Archive -->
+    <div id="tabNews" class="tab-content hidden flex flex-col gap-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-2">
+          <h3 class="text-xs font-bold text-slate-200 uppercase font-mono flex items-center gap-1.5">
+            <i class="ph-bold ph-broadcast text-cyan-400"></i> <span data-i18n="newsArchiveTitle">48 季度半导体产业动态与重大情报归档</span>
+          </h3>
+          <span class="text-[10px] font-mono text-slate-500" data-i18n="newsArchiveOrder">逆序倒排</span>
+        </div>
+        <div id="fullNewsHistory" class="space-y-2.5 max-h-[500px] overflow-y-auto pr-1 text-xs font-mono">
+          <!-- Populated in JS -->
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Annual LTA Bidding Modal (Triggered every Q4 turn with 30% Upfront Advance) -->
+  <div id="modalBidding" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-slate-900 border border-cyan-500/50 max-w-3xl w-full rounded-2xl p-5 sm:p-6 shadow-2xl relative overflow-hidden flex flex-col max-h-[92vh]">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div>
+          <span class="text-[10px] font-mono uppercase text-cyan-400 tracking-wider" data-i18n="modalBiddingSubtitle">年度主供货协议招标 (Master Supply Agreement)</span>
+          <h2 class="text-lg font-bold text-white mt-0.5" id="biddingTitleYear">2015 年度全球晶圆长协锁定会</h2>
+        </div>
+        <div class="text-right text-xs font-mono">
+          <span class="text-slate-400" data-i18n="depositRuleLabel">定金规则:</span>
+          <span class="text-emerald-400 font-bold" data-i18n="depositRuleVal">30% 预付款即时到账</span>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-300 mt-2" data-i18n="modalBiddingDesc">
+        审查客户明年的采购意向并指定供货节点。成功签署长协将即时回笼 30% 无息定金现金，剩余款项将在后续 4 个季度均摊支付。
+      </p>
+
+      <div id="biddingTendersList" class="my-4 space-y-3 overflow-y-auto pr-1 flex-1">
+        <!-- Rendered dynamically in JS -->
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 flex items-center justify-between">
+        <div class="text-xs font-mono text-slate-400">
+          <span data-i18n="advanceEstimateLabel">预计即时到账定金:</span> <span id="biddingTotalAdvance" class="text-emerald-400 font-bold text-sm">$0.00B</span>
+        </div>
+        <button id="btnConfirmBids" class="px-5 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs rounded-lg shadow-lg shadow-cyan-950 transition active:scale-95" data-i18n="btnConfirmBids">
+          确认签署并收取定金
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Historical Milestone Dilemma Modal -->
+  <div id="modalDilemma" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-amber-500/50 max-w-xl w-full rounded-2xl p-6 shadow-2xl relative">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
+          <i class="ph-bold ph-arrows-split text-2xl"></i>
+        </div>
+        <div>
+          <span class="text-[10px] font-mono text-amber-400 uppercase tracking-widest" data-i18n="dilemmaSubtitle">历史战略抉择关口</span>
+          <h3 id="dilemmaTitle" class="text-base font-bold text-white">EUV 商业光刻范式押注</h3>
+        </div>
+      </div>
+      <p id="dilemmaDesc" class="text-xs text-slate-300 leading-relaxed mb-4">
+        ASML 首批商用极紫外光刻机进入试产。你是选择大额订金包圆还是保守挖掘 DUV 极限？
+      </p>
+      <div id="dilemmaOptions" class="space-y-2.5">
+        <!-- Injected via JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Emergency Rescue / Bailout Modal -->
+  <div id="modalEmergency" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-rose-600/60 max-w-lg w-full rounded-2xl p-6 shadow-2xl">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0">
+          <i class="ph-bold ph-hand-coins text-2xl"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-white" data-i18n="rescueTitle">紧急流动性自救操作</h3>
+          <p class="text-xs text-slate-400" data-i18n="rescueSubtitle">在 4 季度破产清算前通过以下方式填补资金缺口</p>
+        </div>
+      </div>
+
+      <div class="space-y-3 text-xs my-4 font-mono">
+        <div class="p-3 bg-slate-950 rounded-lg border border-slate-800 flex items-center justify-between">
+          <div>
+            <div class="font-bold text-white" data-i18n="rescueLoanName">华尔街高息过桥贷款</div>
+            <div class="text-[10px] text-slate-400 mt-0.5" data-i18n="rescueLoanDesc">即刻注入 $2.50B 现金，随后每季度强制扣息 6% ($0.15B)</div>
+          </div>
+          <button id="btnLoanRescue" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded">
+            +$2.50B
+          </button>
+        </div>
+
+        <div class="p-3 bg-slate-950 rounded-lg border border-slate-800 flex items-center justify-between">
+          <div>
+            <div class="font-bold text-white" data-i18n="rescueSellDuvName">二手抛售 5 台 DUV 光刻机</div>
+            <div class="text-[10px] text-slate-400 mt-0.5" data-i18n="rescueSellDuvDesc">折价回笼 $0.25B，相应减少 10k wpm 成熟制程产能</div>
+          </div>
+          <button id="btnSellDuvRescue" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold rounded" data-i18n="btnSellDuv">
+            变卖套现
+          </button>
+        </div>
+      </div>
+
+      <button onclick="document.getElementById('modalEmergency').classList.add('hidden')" class="w-full py-2 bg-slate-800 text-slate-300 text-xs rounded-lg hover:bg-slate-700" data-i18n="btnClose">
+        关闭窗口
+      </button>
+    </div>
+  </div>
+
+  <!-- Startup Game Selector Modal (Faction Choice) -->
+  <div id="modalStartGame" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 max-w-3xl w-full rounded-2xl p-6 shadow-2xl relative">
+      <div class="text-center mb-6">
+        <span class="text-xs font-mono uppercase text-cyan-400 tracking-widest" data-i18n="startSubtitle">2014 - 2026 半导体产业史诗模拟</span>
+        <h2 class="text-2xl font-bold text-white mt-1" data-i18n="startTitle">请选择执掌阵营</h2>
+        <p class="text-xs text-slate-400 mt-2 max-w-lg mx-auto" data-i18n="startDesc">
+          在决定人类算力底座的 48 个季度中，平衡高额折旧、S型良率攻坚、光刻机争夺与黑天鹅金融冲击。
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Mode I (TSMC) Card -->
+        <div onclick="initGame('I')" class="cursor-pointer border-2 border-cyan-500/60 bg-slate-800/40 hover:bg-slate-800/90 p-5 rounded-xl transition flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-sm font-bold text-cyan-400 flex items-center gap-1.5 font-mono">
+                <i class="ph-bold ph-handshake text-lg"></i> I 模式 (TSMC / 纯代工)
+              </span>
+              <span class="text-[10px] bg-cyan-950 text-cyan-300 px-2 py-0.5 rounded border border-cyan-800">台积电范式</span>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed" data-i18n="modeIDesc">
+              坚持“绝不与客户竞争”。秉持小步快跑（Half-node）研发哲学，与全球 Fabless 客户高度绑定，资本结构稳健。
+            </p>
+            <div class="mt-4 space-y-1.5 text-[11px] font-mono text-slate-400 border-t border-slate-800 pt-3">
+              <div class="text-emerald-400" data-i18n="modeIReserves">● 初始储备: $28.00B 现金</div>
+              <div data-i18n="modeIAdvantage">● OIP 客户高粘性，稳定回笼长协定金</div>
+              <div data-i18n="modeICadence">● 稳健步进式演进，试产良率惩罚低</div>
+            </div>
+          </div>
+          <button class="mt-5 w-full py-2 bg-cyan-600 group-hover:bg-cyan-500 text-slate-950 font-bold text-xs rounded transition" data-i18n="btnSelectModeI">
+            执掌台积电模式启航
+          </button>
+        </div>
+
+        <!-- Mode T (Intel) Card -->
+        <div onclick="initGame('T')" class="cursor-pointer border-2 border-indigo-500/60 bg-slate-800/40 hover:bg-slate-800/90 p-5 rounded-xl transition flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-sm font-bold text-indigo-400 flex items-center gap-1.5 font-mono">
+                <i class="ph-bold ph-shield-check text-lg"></i> T 模式 (Intel / IDM 垂直整合)
+              </span>
+              <span class="text-[10px] bg-indigo-950 text-indigo-300 px-2 py-0.5 rounded border border-indigo-800">英特尔范式</span>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed" data-i18n="modeTDesc">
+              自研芯片与先进制程高度内生闭环。坐拥庞大服务器 CPU 护城河，现金充沛；但单代跨度大，跳票惩罚极重。
+            </p>
+            <div class="mt-4 space-y-1.5 text-[11px] font-mono text-slate-400 border-t border-slate-800 pt-3">
+              <div class="text-emerald-400" data-i18n="modeTReserves">● 初始储备: $38.00B 巨额现金</div>
+              <div data-i18n="modeTAdvantage">● 自有服务器 CPU 享有高毛利保底</div>
+              <div class="text-rose-400" data-i18n="modeTPenalty">● 10nm 强推 2.7x 密度，跳票惩罚极高</div>
+            </div>
+          </div>
+          <button class="mt-5 w-full py-2 bg-indigo-600 group-hover:bg-indigo-500 text-white font-bold text-xs rounded transition" data-i18n="btnSelectModeT">
+            执掌英特尔模式启航
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Game Modal (Quarter 48 or Bankruptcy) -->
+  <div id="modalEndGame" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 max-w-xl w-full rounded-2xl p-6 text-center shadow-2xl">
+      <div id="endGameIcon" class="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl mb-4 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+        <i class="ph-bold ph-trophy"></i>
+      </div>
+      <h2 id="endGameTitle" class="text-xl font-bold text-white mb-2">48 季度征程终局</h2>
+      <p id="endGameDesc" class="text-xs text-slate-300 leading-relaxed mb-6">正在结算你的终局战果...</p>
+
+      <div class="grid grid-cols-2 gap-2 text-left bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs font-mono mb-6">
+        <div><span data-i18n="endFinalCash">最终现金存量:</span> <span id="endStatCash" class="font-bold text-emerald-400">$0.00B</span></div>
+        <div><span data-i18n="endFinalShare">先进制程市占:</span> <span id="endStatShare" class="font-bold text-amber-400">0%</span></div>
+        <div><span data-i18n="endFinalNode">最高量产制程:</span> <span id="endStatNode" class="font-bold text-cyan-400">-</span></div>
+        <div><span data-i18n="endFinalQuarter">存活季度数:</span> <span id="endStatQuarters" class="font-bold text-indigo-400">48/48</span></div>
+      </div>
+
+      <button onclick="location.reload()" class="w-full py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 text-white font-bold text-xs rounded-lg transition" data-i18n="btnRestart">
+        重新开始新一轮半导体对决
+      </button>
+    </div>
+  </div>
+
+  <script>
+    /* Comprehensive Bilingual Dictionary (ZH / EN) */
+    const I18N = {
+      zh: {
+        appTitle: "7nm: 硅纪元",
+        kpiCash: "现金储备:",
+        kpiRev: "当季营收:",
+        kpiFcf: "净现金流:",
+        kpiCap: "总产能:",
+        btnNextQuarter: "推进至下季度",
+        btnRescue: "执行紧急救市与融资",
+        tabOverview: "经营总览与财报",
+        tabRoadmap: "制程研发路线",
+        tabFabs: "晶圆厂与光刻机采购",
+        tabMarket: "长协与算力市场",
+        tabNews: "产业动态与黑天鹅",
+        cardRevTitle: "当季营业收入 (Revenue)",
+        cardContractSub: "长协保底:",
+        cardSpotSub: "现货:",
+        cardDeprecTitle: "当季固定折旧 (Depreciation)",
+        cardAssetSub: "5年直线折旧 | 总固定资产:",
+        cardMarginTitle: "综合毛利率 (Gross Margin)",
+        cardYieldSub: "前沿制程综合良率:",
+        cardShareTitle: "先进制程全球市占",
+        statusOip: "生态粘性高 / OIP联盟牢固",
+        chartFinanceTitle: "48 季度营收、自由现金流与存量走势 ($B)",
+        chartUnit: "单位: 十亿美元 ($B)",
+        chartYieldTitle: "各先进制程良率 (Yield S-Curve)",
+        chartYieldUnit: "合格率 (%)",
+        roadmapTitle: "自主制程技术路线图 (自由立项与跨代跳步)",
+        roadmapSubtitle: "每个季度自由支配研发预算。你可以选择停留在成熟节点持续收割无风险现金流，也可以跨代跳步研发建立断代优势。",
+        rdBudgetLabel: "研发预算占比",
+        cowosTitle: "CoWoS / 2.5D 先进晶圆级封装产线",
+        cowosStatusUnbuilt: "未投建",
+        cowosStatusBuilt: "已量产通线",
+        cowosDesc: "后半程 AI 算力与 GPU 超大面积 Die 的决定性底座。未开启先进封装，将无法承接 2021 年之后爆发的数据中心 AI 暴利订单！",
+        btnInvestCowos: "投建封装产线 ($1.20B)",
+        toolDuvTitle: "193nm DUV 浸润式光刻机",
+        toolDuvDesc: "支撑 14nm、12nm 及初版 7nm 多重曝光。当前运转饱满。",
+        btnBuyDuv: "增购 2台 ($0.12B)",
+        toolEuvTitle: "0.33 NA EUV 极紫外光刻机",
+        toolEuvDesc: "7nm+、5nm 及 3nm 的核心利器。单批交期 2 个季度。",
+        btnBuyEuv: "预订 EUV 批次",
+        toolFabTitle: "GigaFab 洁净室与产能",
+        toolFabPending: "在建工程:",
+        toolFabLead: "工期 4季",
+        btnBuildFab: "动工新晶圆厂",
+        tableAssetHeader: "固定资产与每季度刚性折旧明细表 (5年 / 20季度 直线折旧法)",
+        thAssetType: "资产类型",
+        thAssetQty: "现存数量 / 规模",
+        thAssetCost: "原值总额 ($B)",
+        thAssetDeprec: "当季折旧扣除额 ($B)",
+        thAssetStatus: "状态与稼动率",
+        marketConsumerTitle: "消费电子市场 (Consumer Silicon)",
+        marketConsumerTag: "稳健压舱石",
+        marketConsumerDesc: "手机与 PC 芯片需求总量平缓（年均微增 3%-5%），但呈现极强的季度季节性波动：Q3/Q4 伴随秋季新机发布迎来旺季高峰 (+15%)，Q1/Q2 为传统淡季 (-15%)。",
+        demandIndexLabel: "当前季度需求指数:",
+        marketAiTitle: "数据中心与算力芯片 (Datacenter & AI)",
+        marketAiTag: "后期暴利海啸",
+        marketAiDesc: "2014 至 2020 年平缓；自 2021 年（第 28 季）之后进入生成式 AI 军备竞赛，订单以每年 80%–150% 爆发！单晶圆出货单价高达 $25,000–$35,000！",
+        activeLtaTitle: "当前履行中的年度长协清单 (签约 30% 预付款已全额结算)",
+        annualLtaSub: "每年 Q4 开放下年度竞标",
+        newsArchiveTitle: "48 季度半导体产业动态与重大情报归档",
+        newsArchiveOrder: "逆序倒排",
+        modalBiddingSubtitle: "年度主供货协议招标 (Master Supply Agreement)",
+        depositRuleLabel: "定金规则:",
+        depositRuleVal: "30% 预付款即时到账",
+        modalBiddingDesc: "审查客户明年的采购意向并指定供货节点。成功签署长协将即时回笼 30% 无息定金现金，剩余款项将在后续 4 个季度均摊支付。",
+        advanceEstimateLabel: "预计即时到账定金:",
+        btnConfirmBids: "确认签署并收取定金",
+        dilemmaSubtitle: "历史战略抉择关口",
+        rescueTitle: "紧急流动性自救操作",
+        rescueSubtitle: "在 4 季度破产清算前通过以下方式填补资金缺口",
+        rescueLoanName: "华尔街高息过桥贷款",
+        rescueLoanDesc: "即刻注入 $2.50B 现金，随后每季度强制扣息 6% ($0.15B)",
+        rescueSellDuvName: "二手抛售 5 台 DUV 光刻机",
+        rescueSellDuvDesc: "折价回笼 $0.25B，相应减少 10k wpm 成熟制程产能",
+        btnSellDuv: "变卖套现",
+        btnClose: "关闭窗口",
+        startSubtitle: "2014 - 2026 半导体产业史诗模拟",
+        startTitle: "请选择执掌阵营",
+        startDesc: "在决定人类算力底座的 48 个季度中，平衡高额折旧、S型良率攻坚、光刻机争夺与黑天鹅金融冲击。",
+        modeIDesc: "坚持“绝不与客户竞争”。秉持小步快跑（Half-node）研发哲学，与全球 Fabless 客户高度绑定，资本结构稳健。",
+        modeIReserves: "● 初始储备: $28.00B 现金",
+        modeIAdvantage: "● OIP 客户高粘性，稳定回笼长协定金",
+        modeICadence: "● 稳健步进式演进，试产良率惩罚低",
+        btnSelectModeI: "执掌台积电模式启航",
+        modeTDesc: "自研芯片与先进制程高度内生闭环。坐拥庞大服务器 CPU 护城河，现金充沛；但单代跨度大，跳票惩罚极重。",
+        modeTReserves: "● 初始储备: $38.00B 巨额现金",
+        modeTAdvantage: "● 自有服务器 CPU 享有高毛利保底",
+        modeTPenalty: "● 10nm 强推 2.7x 密度，跳票惩罚极高",
+        btnSelectModeT: "执掌英特尔模式启航",
+        endFinalCash: "最终现金存量:",
+        endFinalShare: "先进制程市占:",
+        endFinalNode: "最高量产制程:",
+        endFinalQuarter: "存活季度数:",
+        btnRestart: "重新开始新一轮半导体对决"
+      },
+      en: {
+        appTitle: "7nm: Silicon Era",
+        kpiCash: "Cash Reserves:",
+        kpiRev: "Revenue:",
+        kpiFcf: "Net FCF:",
+        kpiCap: "Capacity:",
+        btnNextQuarter: "Next Quarter",
+        btnRescue: "Emergency Liquidity Rescue",
+        tabOverview: "Overview & Financials",
+        tabRoadmap: "Node Roadmap",
+        tabFabs: "Fabs & Litho Procurement",
+        tabMarket: "LTAs & Market Demand",
+        tabNews: "Industry Intel & Macro",
+        cardRevTitle: "Quarterly Revenue",
+        cardContractSub: "LTA Contracts:",
+        cardSpotSub: "Spot Market:",
+        cardDeprecTitle: "Quarterly Depreciation",
+        cardAssetSub: "5-Yr Straight-Line | Assets:",
+        cardMarginTitle: "Gross Margin",
+        cardYieldSub: "Leading Node Yield:",
+        cardShareTitle: "Leading Node Global Share",
+        statusOip: "High Client Stickiness / Robust OIP",
+        chartFinanceTitle: "48-Quarter Revenue, Free Cash Flow & Reserves ($B)",
+        chartUnit: "Unit: Billions USD ($B)",
+        chartYieldTitle: "Leading-Edge Yield S-Curves",
+        chartYieldUnit: "Yield Rate (%)",
+        roadmapTitle: "Autonomous Technology Roadmap (Freedom & Leapfrogging)",
+        roadmapSubtitle: "Freely allocate quarterly R&D budgets. Harvest mature nodes for risk-free cash flows or leapfrog intermediate nodes for multi-year dominance.",
+        rdBudgetLabel: "R&D Budget Ratio",
+        cowosTitle: "CoWoS / 2.5D Advanced Packaging Cleanroom",
+        cowosStatusUnbuilt: "Not Built",
+        cowosStatusBuilt: "Fully Operational",
+        cowosDesc: "The mandatory foundation for AI GPUs and ultra-large dies. Without CoWoS, you cannot service the explosive datacenter AI boom post-2021!",
+        btnInvestCowos: "Construct Packaging Line ($1.20B)",
+        toolDuvTitle: "193nm DUV Immersion Scanners",
+        toolDuvDesc: "Powers 14nm, 12nm and initial 7nm multi-patterning. Running at maximum utilization.",
+        btnBuyDuv: "Buy 2 Units ($0.12B)",
+        toolEuvTitle: "0.33 NA EUV Scanners",
+        toolEuvDesc: "Indispensable tool for 7nm+, 5nm and 3nm. 2-quarter lead time delivery queue.",
+        btnBuyEuv: "Pre-order EUV Batch",
+        toolFabTitle: "GigaFab Cleanroom Capacity",
+        toolFabPending: "Under Construction:",
+        toolFabLead: "4 Quarters Lead Time",
+        btnBuildFab: "Break Ground on New Fab",
+        tableAssetHeader: "Fixed Assets & Quarterly Straight-Line Depreciation Schedule (5 Years / 20 Quarters)",
+        thAssetType: "Asset Category",
+        thAssetQty: "Installed Units / Capacity",
+        thAssetCost: "Gross Value ($B)",
+        thAssetDeprec: "Quarterly Depreciation ($B)",
+        thAssetStatus: "Operating Status & Uptime",
+        marketConsumerTitle: "Consumer Silicon Market",
+        marketConsumerTag: "Steady Anchor",
+        marketConsumerDesc: "Smartphone and PC wafer volumes grow modestly (3%-5% CAGR), but display high seasonality: Q3/Q4 peak season (+15%) vs Q1/Q2 off-season (-15%).",
+        demandIndexLabel: "Current Demand Index:",
+        marketAiTitle: "Datacenter & AI Accelerators",
+        marketAiTag: "Late-Game Super Boom",
+        marketAiDesc: "Steady from 2014–2020; starting in 2021 (Q28), generative AI sparks an exponential wave (+80%–150% YoY)! Wafer ASP explodes to $25k–$35k!",
+        demandIndexLabel: "Current Demand Index:",
+        activeLtaTitle: "Active Annual Master Supply Agreements (30% Upfront Advances Received)",
+        annualLtaSub: "Annual Bidding Opens Every Q4",
+        newsArchiveTitle: "48-Quarter Semiconductor Industry News & Shock Archives",
+        newsArchiveOrder: "Chronological Reverse",
+        modalBiddingSubtitle: "Annual Master Supply Agreement (LTA) Bidding",
+        depositRuleLabel: "Deposit Rule:",
+        depositRuleVal: "30% Upfront Cash Advance",
+        modalBiddingDesc: "Review client demand and assign your delivery nodes. Finalizing agreements grants an immediate 30% upfront cash injection, with the rest paid quarterly.",
+        advanceEstimateLabel: "Estimated Advance Cash:",
+        btnConfirmBids: "Sign Contracts & Receive Advances",
+        dilemmaSubtitle: "Strategic Milestone Decision",
+        rescueTitle: "Emergency Liquidity Rescue Operations",
+        rescueSubtitle: "Close cash deficits before the 4-quarter bankruptcy liquidation counter expires",
+        rescueLoanName: "Wall Street Bridge Loan",
+        rescueLoanDesc: "Instantly inject $2.50B cash, incurring a quarterly 6% interest fee ($0.15B)",
+        rescueSellDuvName: "Sell 5 Used DUV Scanners",
+        rescueSellDuvDesc: "Liquidate used tools for $0.25B cash, reducing 10k wpm mature capacity",
+        btnSellDuv: "Liquidate Tools",
+        btnClose: "Close Window",
+        startSubtitle: "2014 - 2026 Semiconductor Industry Epic Simulation",
+        startTitle: "Select Your Operating Faction",
+        startDesc: "Across 48 critical quarters, balance CapEx depreciation, S-curve yield learning, scanner queues, and macroeconomic black swans.",
+        modeIDesc: "Commitment to 'never compete with customers'. Iterative half-node scaling cadence, deep lock-in with global Fabless clients, and rock-solid balance sheet.",
+        modeIReserves: "● Initial Reserves: $28.00B Cash",
+        modeIAdvantage: "● High OIP customer stickiness and stable LTA advance cash",
+        modeICadence: "● Methodical node cadence with gentle risk yields",
+        btnSelectModeI: "Command TSMC (Foundry) Mode",
+        modeTDesc: "Vertical integration of in-house CPUs and bleeding-edge fabs. Massive server cash cushion, but aggressive full-node leaps carry brutal delay penalties.",
+        modeTReserves: "● Initial Reserves: $38.00B Massive Cash",
+        modeTAdvantage: "● In-house server CPUs provide premium gross margin baseline",
+        modeTPenalty: "● 10nm targets aggressive 2.7x density, severe slip penalty",
+        btnSelectModeT: "Command Intel (IDM) Mode",
+        endFinalCash: "Final Cash Reserves:",
+        endFinalShare: "Leading Node Share:",
+        endFinalNode: "Highest Mass Node:",
+        endFinalQuarter: "Quarters Survived:",
+        btnRestart: "Start New Semiconductor Match"
+      }
+    };
+
+    let currentLang = 'zh';
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      document.getElementById('labelLang').innerText = (lang === 'zh' ? 'EN' : '中文');
+      
+      // Update data-i18n attributes in DOM
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (I18N[lang] && I18N[lang][key]) {
+          el.innerText = I18N[lang][key];
+        }
+      });
+
+      // Update dynamic elements
+      updateAllUI();
+    }
+
+    document.getElementById('btnLangToggle').addEventListener('click', () => {
+      setLanguage(currentLang === 'zh' ? 'en' : 'zh');
+      playSound('click');
+    });
+
+    /* Audio Synthesizer via Web Audio API (Zero external assets required) */
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let isSoundEnabled = true;
+
+    function playSound(type) {
+      if (!isSoundEnabled || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
+
+        if (type === 'click') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(800, now);
+          osc.frequency.exponentialRampToValueAtTime(400, now + 0.05);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.linearRampToValueAtTime(0, now + 0.05);
+          osc.start(now);
+          osc.stop(now + 0.05);
+        } else if (type === 'advance') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(320, now);
+          osc.frequency.exponentialRampToValueAtTime(640, now + 0.12);
+          gain.gain.setValueAtTime(0.18, now);
+          gain.gain.linearRampToValueAtTime(0, now + 0.12);
+          osc.start(now);
+          osc.stop(now + 0.12);
+        } else if (type === 'warn') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.setValueAtTime(180, now + 0.1);
+          gain.gain.setValueAtTime(0.22, now);
+          gain.gain.linearRampToValueAtTime(0, now + 0.25);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        } else if (type === 'win') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.setValueAtTime(659.25, now + 0.1);
+          osc.frequency.setValueAtTime(783.99, now + 0.2);
+          gain.gain.setValueAtTime(0.18, now);
+          gain.gain.linearRampToValueAtTime(0, now + 0.35);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        }
+      } catch (e) {
+        console.warn("Audio blocked:", e);
+      }
+    }
+
+    /* Core Game State with Rebalanced High-Cash Economy */
+    const G = {
+      mode: 'I', // 'I' (TSMC) or 'T' (Intel)
+      quarter: 1, // 1 to 48 (2014 Q1 to 2026 Q4)
+      cash: 28.0, // Billions USD (Initial buffed baseline)
+      rdBudgetPct: 18,
+      consecutiveNegativeQuarters: 0,
+      hasCoWoS: false,
+      marketShare: 52.0,
+
+      // Capacity & Fabs
+      totalCapacityWpm: 110, // thousand wafers / month
+      pendingCapacity: 0,
+      pendingCapacityTimer: 0,
+      duvTools: 45,
+      euvTools: 0,
+      pendingEuv: 0,
+      pendingEuvTimer: 0,
+      totalFixedAssets: 24.0, // $B for depreciation baseline
+
+      // Debt & Loans
+      bridgeLoanDebt: 0,
+
+      // Macro shocks
+      activeShock: null,
+      shockHistory: {
+        minorStormCount: 0,
+        lastMinorStormQuarter: -99,
+        hasMajorCrisisOccurred: false,
+        hasPandemicOccurred: false
+      },
+
+      dilemmasFired: {},
+
+      // Rebalanced Nodes (Boosted ASPs: 7nm $16.5k, 5nm $22k, 3nm $28k, 2nm $35k)
+      nodes: [
+        {
+          id: '14nm',
+          name: '14nm FinFET',
+          level: 1,
+          status: 'mass',
+          rdProgress: 100,
+          yield: 89.0,
+          baseAsp: 5800, // Boosted cash cow baseline
+          costPerWafer: 2100,
+          wafersProduced: 600,
+          requiresEuv: false,
+          desc_zh: '成熟量产的基石制程，高良率提供源源不断的现金流。',
+          desc_en: 'Bedrock mature node with stable high yields generating steady cash flow.'
+        },
+        {
+          id: '10nm',
+          name: '10nm / 12nm 优化版',
+          level: 2,
+          status: 'rd',
+          rdProgress: 40,
+          yield: 28.0,
+          baseAsp: 9500,
+          costPerWafer: 3600,
+          wafersProduced: 30,
+          requiresEuv: false,
+          desc_zh: '过渡节点。I模式推12nm微调；T模式强推2.7x密度。',
+          desc_en: 'Transition node. Mode I refines 12nm; Mode T pushes 2.7x density.'
+        },
+        {
+          id: '7nm',
+          name: '7nm 先进制程',
+          level: 3,
+          status: 'locked',
+          rdProgress: 0,
+          yield: 20.0,
+          baseAsp: 16500, // Upgraded ASP from $9k
+          costPerWafer: 5200,
+          wafersProduced: 0,
+          requiresEuv: false,
+          desc_zh: '决定半导体格局的分水岭制程。若无EUV机台，多重曝光良率天花板受限。',
+          desc_en: 'Historic turning point. Without EUV, DUV multi-patterning hits defect ceiling.'
+        },
+        {
+          id: '5nm',
+          name: '5nm EUV 全面导入',
+          level: 4,
+          status: 'locked',
+          rdProgress: 0,
+          yield: 18.0,
+          baseAsp: 22000, // Upgraded ASP
+          costPerWafer: 6900,
+          wafersProduced: 0,
+          requiresEuv: true,
+          desc_zh: '全面依赖极紫外光刻，旗舰移动芯片与超算算力的首发节点。',
+          desc_en: 'Native EUV process. Powering flagship mobile SoCs and AI supercomputing.'
+        },
+        {
+          id: '3nm',
+          name: '3nm FinFlex 极限',
+          level: 5,
+          status: 'locked',
+          rdProgress: 0,
+          yield: 14.0,
+          baseAsp: 28000, // Upgraded ASP
+          costPerWafer: 8800,
+          wafersProduced: 0,
+          requiresEuv: true,
+          desc_zh: 'FinFET 架构物理微缩极限，单片出货售价极高。',
+          desc_en: 'Physical scaling summit of FinFET, commanding astronomical wafer prices.'
+        },
+        {
+          id: '2nm',
+          name: '2nm GAA 纳米片',
+          level: 6,
+          status: 'locked',
+          rdProgress: 0,
+          yield: 12.0,
+          baseAsp: 35000, // Upgraded ASP
+          costPerWafer: 11000,
+          wafersProduced: 0,
+          requiresEuv: true,
+          desc_zh: '全环绕栅极与背面供电网络，终局算力王冠。',
+          desc_en: 'Gate-All-Around nanosheets with backside power delivery network.'
+        }
+      ],
+
+      activeContracts: [],
+
+      history: {
+        labels: [],
+        revenue: [],
+        fcf: [],
+        cash: [],
+        leadYield: []
+      }
+    };
+
+    let chartFinance = null;
+    let chartYield = null;
+
+    /* Initialize Selected Faction Mode */
+    function initGame(mode) {
+      G.mode = mode;
+      document.getElementById('modalStartGame').classList.add('hidden');
+      
+      const badge = document.getElementById('badgeMode');
+      if (mode === 'I') {
+        // Mode I = TSMC (Foundry)
+        G.cash = 28.0;
+        G.marketShare = 52.0;
+        badge.innerText = currentLang === 'zh' ? 'I 模式 (TSMC / 代工)' : 'Mode I (TSMC / Foundry)';
+        badge.className = 'text-[10px] sm:text-[11px] px-2 py-0.5 rounded font-mono font-bold bg-cyan-950 text-cyan-300 border border-cyan-800';
+        logNews(currentLang === 'zh' 
+          ? "2014年 第1季度：I 模式 (TSMC) 启航！OIP 开放创新平台对接全球顶尖客户，资本储备充沛 ($28.0B)。"
+          : "2014 Q1: Mode I (TSMC) initiated! OIP platform locks in global clients with $28.0B cash cushion.");
+      } else {
+        // Mode T = Intel (IDM)
+        G.cash = 38.0;
+        G.marketShare = 68.0;
+        badge.innerText = currentLang === 'zh' ? 'T 模式 (Intel / IDM)' : 'Mode T (Intel / IDM)';
+        badge.className = 'text-[10px] sm:text-[11px] px-2 py-0.5 rounded font-mono font-bold bg-indigo-950 text-indigo-300 border border-indigo-800';
+        G.nodes[1].desc_zh = '激进 2.7x 密度与钴互连攻坚，跳票风险高。';
+        G.nodes[1].desc_en = 'Aggressive 2.7x scaling target with risky Cobalt interconnects.';
+        logNews(currentLang === 'zh'
+          ? "2014年 第1季度：T 模式 (Intel) 启航！坐拥垄断级 x86 现金牛 ($38.0B)，但 10nm 面对 2.7x 微缩高难度。"
+          : "2014 Q1: Mode T (Intel) initiated! Holding $38.0B x86 CPU cushion, facing aggressive 2.7x 10nm scaling hurdles.");
+      }
+
+      // Initial contracts for 2014
+      G.activeContracts = [
+        { client: 'Fruit 移动终端', node: '14nm', committedMonthly: 45, price: 6000, quartersLeft: 4 },
+        { client: '通用云端服务器', node: '14nm', committedMonthly: 40, price: 5800, quartersLeft: 4 }
+      ];
+
+      initCharts();
+      updateAllUI();
+      playSound('win');
+    }
+
+    /* Initialize Live Chart.js Visualizations */
+    function initCharts() {
+      const ctxF = document.getElementById('chartFinance').getContext('2d');
+      chartFinance = new Chart(ctxF, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: currentLang === 'zh' ? '营业收入 ($B)' : 'Revenue ($B)',
+              data: [],
+              borderColor: '#06b6d4',
+              backgroundColor: 'rgba(6, 182, 212, 0.1)',
+              tension: 0.3,
+              fill: true
+            },
+            {
+              label: currentLang === 'zh' ? '自由现金流 ($B)' : 'Net FCF ($B)',
+              data: [],
+              borderColor: '#6366f1',
+              borderDash: [3, 3],
+              tension: 0.2
+            },
+            {
+              label: currentLang === 'zh' ? '现金储备 ($B)' : 'Cash Reserves ($B)',
+              data: [],
+              borderColor: '#10b981',
+              tension: 0.2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } } }
+          },
+          scales: {
+            x: { ticks: { color: '#64748b', font: { size: 9 } }, grid: { color: 'rgba(51, 65, 85, 0.2)' } },
+            y: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { color: 'rgba(51, 65, 85, 0.2)' } }
+          }
+        }
+      });
+
+      const ctxY = document.getElementById('chartYield').getContext('2d');
+      chartYield = new Chart(ctxY, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: currentLang === 'zh' ? '主力先进制程良率 (%)' : 'Leading Node Yield (%)',
+              data: [],
+              borderColor: '#f59e0b',
+              tension: 0.3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } } }
+          },
+          scales: {
+            x: { ticks: { color: '#64748b', font: { size: 9 } }, grid: { color: 'rgba(51, 65, 85, 0.2)' } },
+            y: { min: 0, max: 100, ticks: { color: '#f59e0b', font: { size: 9 } }, grid: { color: 'rgba(51, 65, 85, 0.2)' } }
+          }
+        }
+      });
+    }
+
+    /* Advance Quarter Logic (48 Quarters Simulation Engine) */
+    function advanceQuarter() {
+      if (G.quarter >= 48) {
+        evaluateGameEnding();
+        return;
+      }
+
+      playSound('advance');
+      G.quarter += 1;
+      const year = 2014 + Math.floor((G.quarter - 1) / 4);
+      const qNum = ((G.quarter - 1) % 4) + 1;
+
+      // 1. Resolve Construction & Equipment Queues
+      if (G.pendingCapacity > 0) {
+        G.pendingCapacityTimer -= 1;
+        if (G.pendingCapacityTimer <= 0) {
+          G.totalCapacityWpm += G.pendingCapacity;
+          logNews(currentLang === 'zh'
+            ? `工程竣工：新建洁净室通过认证，总产能扩张 +${G.pendingCapacity}k 片/月。`
+            : `Cleanroom Complete: GigaFab certified, expanding total capacity by +${G.pendingCapacity}k wpm.`);
+          G.pendingCapacity = 0;
+        }
+      }
+
+      if (G.pendingEuv > 0) {
+        G.pendingEuvTimer -= 1;
+        if (G.pendingEuvTimer <= 0) {
+          G.euvTools += G.pendingEuv;
+          logNews(currentLang === 'zh'
+            ? `机台交付：ASML ${G.pendingEuv} 台极紫外 EUV 光刻机入场调试完毕！`
+            : `Tool Arrival: ASML delivered and calibrated ${G.pendingEuv} EUV scanners!`);
+          G.pendingEuv = 0;
+        }
+      }
+
+      // 2. Macro Shock Decay & Evaluation
+      let shockMultiplier = 1.0;
+      if (G.activeShock) {
+        shockMultiplier = G.activeShock.curve[G.activeShock.currentStep] || 1.0;
+        G.activeShock.currentStep += 1;
+        if (G.activeShock.currentStep >= G.activeShock.curve.length) {
+          logNews(currentLang === 'zh'
+            ? `宏观周期回暖：${G.activeShock.name_zh} 的冲击消退。`
+            : `Macro Recovery: Market impact of ${G.activeShock.name_en} has dissipated.`);
+          G.activeShock = null;
+        }
+      } else {
+        rollForMacroShocks(year, qNum);
+      }
+
+      // 3. R&D Progression (S-Curve & Free-form roadmap)
+      const baseRevEst = 7.0;
+      const quarterlyRdCash = Math.max(0.7, (baseRevEst * (G.rdBudgetPct / 100)));
+      
+      const activeRdNodes = G.nodes.filter(n => n.status === 'rd');
+      if (activeRdNodes.length > 0) {
+        const poolPerNode = quarterlyRdCash / activeRdNodes.length;
+        activeRdNodes.forEach(node => {
+          let progressRate = (poolPerNode / 0.8) * 19;
+          if (G.mode === 'T' && node.id === '10nm') {
+            progressRate *= 0.65; // Mode T full-node 2.7x density penalty
+          }
+          if (node.requiresEuv && G.euvTools === 0) {
+            progressRate *= 0.45;
+          }
+          node.rdProgress = Math.min(100, node.rdProgress + progressRate);
+          if (node.rdProgress >= 100) {
+            node.status = 'risk';
+            logNews(currentLang === 'zh'
+              ? `研发里程碑：${node.name} 流片成功，进入风险试产 (Risk Production)！`
+              : `R&D Milestone: ${node.name} taped out, entering Risk Production!`);
+          }
+        });
+      }
+
+      // 4. Yield Learning Curve S-Curve for Risk & Mass nodes
+      G.nodes.forEach(node => {
+        if (node.status === 'risk' || node.status === 'mass') {
+          node.wafersProduced += (node.status === 'mass' ? 22 : 6);
+          let lithoMultiplier = 1.0;
+          if (node.requiresEuv && G.euvTools === 0) {
+            lithoMultiplier = 0.45;
+          }
+          const maxCeiling = (node.requiresEuv && G.euvTools < 2) ? 68 : 94;
+          const delta = (maxCeiling - node.yield) * 0.17 * lithoMultiplier * (1 + (quarterlyRdCash / 7));
+          node.yield = Math.min(maxCeiling, Number((node.yield + delta).toFixed(1)));
+
+          if (node.status === 'risk' && node.yield >= 60) {
+            node.status = 'mass';
+            logNews(currentLang === 'zh'
+              ? `商用量产达成：${node.name} 良率攀升至 ${node.yield}%，具备大规模商业交付能力！`
+              : `Commercial Yield Reached: ${node.name} hit ${node.yield}% yield for high-volume manufacturing!`);
+          }
+        }
+      });
+
+      // 5. Calculate Revenue, Costs & Financial Statements
+      let contractRevenue = 0;
+      let spotRevenue = 0;
+      let directWaferCosts = 0;
+      let committedWafersMonthly = 0;
+
+      // 70% remaining paid across 4 quarters = 17.5% per quarter (since 30% advance was already paid)
+      G.activeContracts.forEach(contract => {
+        const nodeObj = G.nodes.find(n => n.id === contract.node) || G.nodes[0];
+        committedWafersMonthly += contract.committedMonthly;
+        const qtrRevenue = (contract.committedMonthly * 3 * contract.price * 0.175 * 1000) / 1e9;
+        contractRevenue += qtrRevenue;
+        directWaferCosts += (contract.committedMonthly * 3 * nodeObj.costPerWafer * 1000) / 1e9;
+        contract.quartersLeft -= 1;
+      });
+      G.activeContracts = G.activeContracts.filter(c => c.quartersLeft > 0);
+
+      // Spot Market shipments
+      const remainingMonthlyCap = Math.max(0, G.totalCapacityWpm - committedWafersMonthly);
+      const activeMassNodes = G.nodes.filter(n => n.status === 'mass');
+      const leadMassNode = activeMassNodes[activeMassNodes.length - 1] || G.nodes[0];
+
+      const consumerDemandFactor = getConsumerDemandFactor(year, qNum);
+      const aiDemandFactor = getAiDemandFactor(G.quarter);
+
+      let effectiveDemand = (remainingMonthlyCap * 0.88) * consumerDemandFactor * shockMultiplier;
+      if (G.hasCoWoS && leadMassNode.level >= 4) {
+        effectiveDemand *= (1 + aiDemandFactor * 0.03);
+      }
+
+      const spotPrice = leadMassNode.baseAsp * (G.hasCoWoS ? 1.30 : 1.0);
+      spotRevenue = (Math.min(remainingMonthlyCap, effectiveDemand) * 3 * spotPrice * 1000) / 1e9;
+      directWaferCosts += (Math.min(remainingMonthlyCap, effectiveDemand) * 3 * leadMassNode.costPerWafer * 1000) / 1e9;
+
+      let totalGrossRev = (contractRevenue + spotRevenue);
+      
+      // Mode T (Intel) in-house CPU margin premium
+      if (G.mode === 'T') {
+        if (leadMassNode.level >= 3 && leadMassNode.yield >= 70) {
+          totalGrossRev *= 1.25;
+        } else if (leadMassNode.level < 3 && G.quarter >= 16) {
+          totalGrossRev *= 0.85; // Lost datacenter market share to competitors
+        }
+      }
+
+      // Depreciation: 5-year straight line = 5% per quarter of assets
+      const qtrDepreciation = Number((G.totalFixedAssets * 0.05).toFixed(2));
+      const qtrRdSpent = Number(Math.min(G.cash + totalGrossRev, Math.max(0.8, totalGrossRev * (G.rdBudgetPct / 100))).toFixed(2));
+      const loanInterest = Number((G.bridgeLoanDebt * 0.06).toFixed(2));
+      
+      const grossMargin = totalGrossRev - directWaferCosts - qtrDepreciation;
+      const netFcf = Number((grossMargin - qtrRdSpent - loanInterest).toFixed(2));
+
+      G.cash = Number((G.cash + netFcf).toFixed(2));
+
+      // 6. Check Historical Dilemmas
+      checkHistoricalMilestones(G.quarter);
+
+      // 7. Bankruptcy & Grace Period Ladder
+      checkFinancialSafety();
+
+      // 8. Record History for Chart
+      G.history.labels.push(`'${String(year).slice(2)} Q${qNum}`);
+      G.history.revenue.push(Number(totalGrossRev.toFixed(2)));
+      G.history.fcf.push(netFcf);
+      G.history.cash.push(G.cash);
+      G.history.leadYield.push(leadMassNode.yield);
+
+      updateCharts();
+      updateAllUI(totalGrossRev, qtrDepreciation, grossMargin, netFcf, contractRevenue, spotRevenue, leadMassNode);
+
+      // 9. Every Q4: Trigger Annual Bidding Master Agreement (LTA)
+      if (qNum === 4 && G.quarter < 48) {
+        setTimeout(() => {
+          openAnnualBiddingModal(year + 1);
+        }, 350);
+      }
+    }
+
+    /* Demand Factor Helpers */
+    function getConsumerDemandFactor(year, qNum) {
+      const seasonality = (qNum === 3 || qNum === 4) ? 1.15 : 0.85;
+      const yearlyGrowth = Math.pow(1.04, year - 2014);
+      return Number((seasonality * yearlyGrowth).toFixed(2));
+    }
+
+    function getAiDemandFactor(q) {
+      if (q < 28) return 1.0;
+      const quartersPast = q - 28;
+      return Number(Math.pow(1.24, quartersPast).toFixed(2)); // Exponential AI boom
+    }
+
+    /* Macro Shocks Engine */
+    function rollForMacroShocks(year, qNum) {
+      // 1. Minor Financial Storm: 10% chance, max 2 times, >= 12 quarters apart
+      if (G.shockHistory.minorStormCount < 2 && (G.quarter - G.shockHistory.lastMinorStormQuarter >= 12)) {
+        if (Math.random() < 0.10) {
+          G.shockHistory.minorStormCount += 1;
+          G.shockHistory.lastMinorStormQuarter = G.quarter;
+          G.activeShock = {
+            name_zh: '小型金融风暴',
+            name_en: 'Minor Financial Storm',
+            currentStep: 0,
+            curve: [0.95, 0.85, 0.95, 0.95]
+          };
+          logNews(currentLang === 'zh'
+            ? `宏观黑天鹅触发：全球爆发【小型金融风暴】！消费电子订单需求开始收缩。`
+            : `Macro Alert: Global Minor Financial Storm erupted! Consumer orders softening.`);
+          playSound('warn');
+          return;
+        }
+      }
+
+      // 2. Major Financial Crisis: 2% chance, max 1 time, 6 quarters
+      if (!G.shockHistory.hasMajorCrisisOccurred) {
+        if (Math.random() < 0.02) {
+          G.shockHistory.hasMajorCrisisOccurred = true;
+          G.activeShock = {
+            name_zh: '大型金融海啸危机',
+            name_en: 'Major Financial Crisis',
+            currentStep: 0,
+            curve: [0.95, 0.85, 0.75, 0.90, 0.95, 0.95]
+          };
+          logNews(currentLang === 'zh'
+            ? `警报：全球突发【大型金融海啸危机】！采购端遭遇严重流动性紧缩！`
+            : `Urgent Warning: Major Global Financial Crisis struck! Severe demand freeze across tech.`);
+          playSound('warn');
+          return;
+        }
+      }
+
+      // 3. Global Pandemic: 10% chance, max 1 time, 4 quarters with bullwhip rebound
+      if (!G.shockHistory.hasPandemicOccurred && year >= 2019 && year <= 2022) {
+        if (Math.random() < 0.10) {
+          G.shockHistory.hasPandemicOccurred = true;
+          G.activeShock = {
+            name_zh: '全球突发公共卫生疫情',
+            name_en: 'Global Pandemic',
+            currentStep: 0,
+            curve: [0.95, 0.70, 1.10, 1.30] // -5%, -30% freeze, then +10%, +30% boom
+          };
+          logNews(currentLang === 'zh'
+            ? `突发事件：【全球疫情扰动】爆发！初期出货受阻，但居家远程与云算力超级牛市即将来临！`
+            : `Event: Global Pandemic erupted! Short-term logistics freeze, followed by a remote-work AI compute super-boom!`);
+          playSound('warn');
+        }
+      }
+    }
+
+    /* Historical Dilemmas System */
+    function checkHistoricalMilestones(q) {
+      // Q8: EUV Wager
+      if (q === 8 && !G.dilemmasFired['euv']) {
+        G.dilemmasFired['euv'] = true;
+        showDilemma(
+          currentLang === 'zh' ? "2015年末 战略抉择：EUV 极紫外光刻首批商业采购押注" : "Late 2015 Dilemma: Commercial EUV Scanner Pre-Orders",
+          currentLang === 'zh'
+            ? "ASML 首批 NXE:3400 商业极紫外光刻机开放预订。DUV 在 7nm 遭遇物理极限需做繁复四重曝光 (SAQP)。你是否愿意锁定首批高昂订金？"
+            : "ASML opens commercial NXE:3400 EUV pre-orders. DUV hits hard limits at 7nm requiring complex SAQP. Do you commit heavy upfront CapEx to secure slots?",
+          [
+            {
+              text: currentLang === 'zh' 
+                ? "重金预订：支付 $1.20B 优先订金，锁定首批 3 台交付配额（扫清 7nm/5nm 物理门槛）"
+                : "Pre-order Now: Pay $1.20B advance deposit to secure 3 EUV delivery slots",
+              action: () => {
+                G.cash -= 1.20;
+                G.pendingEuv += 3;
+                G.pendingEuvTimer = 2;
+                G.totalFixedAssets += 1.20;
+                logNews(currentLang === 'zh' ? "战略抉择：锁定首批 ASML 极紫外光刻机配额！" : "Strategic Decision: Secured ASML EUV pre-order delivery quota!");
+              }
+            },
+            {
+              text: currentLang === 'zh'
+                ? "保守观望：依托成熟 DUV 挖潜多重曝光（SAQP），节约当前宝贵现金"
+                : "Conservative Wait: Rely on mature DUV multi-patterning to preserve current cash",
+              action: () => {
+                logNews(currentLang === 'zh' ? "战略抉择：暂缓 EUV 导入，依靠 DUV 多重曝光挖掘成熟潜力。" : "Strategic Decision: Deferred EUV, relying on DUV multi-patterning.");
+              }
+            }
+          ]
+        );
+      }
+
+      // Q16: Scaling Ambition
+      if (q === 16 && !G.dilemmasFired['scaling']) {
+        G.dilemmasFired['scaling'] = true;
+        showDilemma(
+          currentLang === 'zh' ? "2017年末 战略抉择：微缩指标激进度 (1.8x 稳健 vs 2.7x 极限跃迁)" : "Late 2017 Dilemma: Scaling Ambition (1.8x Cadence vs 2.7x Leap)",
+          currentLang === 'zh'
+            ? "研发委员会呈递新一代工艺指标案。稳健路线主张 1.8x 步进保良率交付；激进路线主张 2.7x 密度提升并强推钴金属 (Cobalt) 互连。"
+            : "The R&D committee submits node targets. Modest 1.8x half-node preserves yield delivery; aggressive 2.7x targets maximum density with risky Cobalt interconnects.",
+          [
+            {
+              text: currentLang === 'zh' ? "稳健微步（1.8x）：保证良率爬坡可控与客户交付确定性" : "Steady Cadence (1.8x): Ensure predictable yield ramps and customer deliveries",
+              action: () => {
+                const n = G.nodes.find(x => x.id === '7nm');
+                if (n) n.rdProgress = Math.min(100, n.rdProgress + 25);
+                logNews(currentLang === 'zh' ? "战略抉择：坚持微步快跑，稳健推进先进制程研发。" : "Strategic Decision: Opted for iterative half-node scaling cadence.");
+              }
+            },
+            {
+              text: currentLang === 'zh' ? "激进跃迁（2.7x）：强攻物理极限，争取建立长达两年的制程代差垄断" : "Aggressive Leap (2.7x): Push physical boundaries for a 2-year monopoly moat",
+              action: () => {
+                const n = G.nodes.find(x => x.id === '10nm') || G.nodes[1];
+                n.yield = Math.max(10, n.yield - 15);
+                n.baseAsp += 3000;
+                logNews(currentLang === 'zh' ? "战略抉择：选择 2.7x 激进指标。微观缺陷导致爬坡难度加剧。" : "Strategic Decision: Pursued 2.7x leap. Micro-defect density slows yield ramp.");
+              }
+            }
+          ]
+        );
+      }
+
+      // Q24: CoWoS Advanced Packaging
+      if (q === 24 && !G.dilemmasFired['packaging']) {
+        G.dilemmasFired['packaging'] = true;
+        showDilemma(
+          currentLang === 'zh' ? "2019年末 战略抉择：CoWoS 2.5D/3D 晶圆级先进封装布局" : "Late 2019 Dilemma: CoWoS 2.5D/3D Advanced Packaging Bet",
+          currentLang === 'zh'
+            ? "单芯片面积逼近光罩极限，异构集成时代开启。是否投资 $1.20B 投建专属先进封装无尘室？"
+            : "Monolithic dies hit reticle limits. Heterogeneous Chiplets emerge. Do you allocate $1.20B to build dedicated CoWoS advanced packaging capacity?",
+          [
+            {
+              text: currentLang === 'zh' ? "重注封装：斥资 $1.20B 投建 CoWoS 专用产线（解锁 AI 算力超级订单资质）" : "Invest Heavily: Spend $1.20B on CoWoS packaging (unlocking AI GPU orders)",
+              action: () => {
+                G.cash -= 1.20;
+                G.hasCoWoS = true;
+                G.totalFixedAssets += 1.20;
+                logNews(currentLang === 'zh' ? "战略抉择：成功落子 CoWoS 先进封装！" : "Strategic Decision: Built CoWoS advanced packaging capacity!");
+              }
+            },
+            {
+              text: currentLang === 'zh' ? "聚焦前端：保持纯前端制造，封装完全外包第三方封测厂 (OSAT)" : "Pure Frontend Focus: Outsource packaging entirely to third-party OSATs",
+              action: () => {
+                logNews(currentLang === 'zh' ? "战略抉择：未涉足先进封装，规避额外固定资产折旧。" : "Strategic Decision: Remained pure frontend fabricator.");
+              }
+            }
+          ]
+        );
+      }
+
+      // Q32: Geopolitics & Foreign Subsidies
+      if (q === 32 && !G.dilemmasFired['geopolitics']) {
+        G.dilemmasFired['geopolitics'] = true;
+        showDilemma(
+          currentLang === 'zh' ? "2021年末 战略抉择：全球地缘与跨国晶圆厂补贴 (CHIPS Act)" : "Late 2021 Dilemma: Global Geopolitics & Overseas Subsidies (CHIPS Act)",
+          currentLang === 'zh'
+            ? "欧美推出芯片法案邀请设立海外晶圆厂。可立即获得 $2.50B 现金补贴，但海外厂建造成本与运营摩擦将使折旧率上升 25%。"
+            : "Governments offer CHIPS Act subsidies for overseas fabs. Receive $2.50B immediate cash, but overseas operating friction adds 25% depreciation drag.",
+          [
+            {
+              text: currentLang === 'zh' ? "接受补贴跨国建厂：获得 $2.50B 现金注资，承接地缘敏感大客户" : "Accept Subsidies: Secure $2.50B cash injection and expand overseas fabs",
+              action: () => {
+                G.cash += 2.50;
+                G.totalFixedAssets += 3.00;
+                logNews(currentLang === 'zh' ? "战略抉择：获得海外芯片法案建厂补贴！" : "Strategic Decision: Accepted overseas fab subsidies!");
+              }
+            },
+            {
+              text: currentLang === 'zh' ? "坚守本土产业集群：拒绝分散建厂，保持最高协同效率与最低制造成本" : "Concentrate Domestically: Maintain highest cluster efficiency and lowest unit cost",
+              action: () => {
+                logNews(currentLang === 'zh' ? "战略抉择：坚持本土高密度产业集群高效运转。" : "Strategic Decision: Preserved concentrated domestic cluster synergy.");
+              }
+            }
+          ]
+        );
+      }
+    }
+
+    /* Financial Safety & Tiered 4-Quarter Debt Grace Period Rule */
+    function checkFinancialSafety() {
+      const banner = document.getElementById('debtWarningBanner');
+      const text = document.getElementById('debtWarningText');
+
+      if (G.cash < 0) {
+        G.consecutiveNegativeQuarters += 1;
+        playSound('warn');
+
+        if (G.consecutiveNegativeQuarters === 1) {
+          banner.classList.remove('hidden');
+          text.innerText = currentLang === 'zh'
+            ? `【轻度警戒】账面现金储备首次为负 ($${G.cash.toFixed(2)}B)！进入财务宽限期 (第 1/4 季)。请尽快回笼长协定金或调优良率。`
+            : `[Stage 1 Alert] Cash reserves turned negative ($${G.cash.toFixed(2)}B)! Grace period started (Quarter 1/4).`;
+        } else if (G.consecutiveNegativeQuarters === 2) {
+          banner.classList.remove('hidden');
+          text.innerText = currentLang === 'zh'
+            ? `【黄牌警告】现金储备连续 2 季为负！强制冻结新建 Fab 与采购！请通过紧急救市贷款或变卖设备自救 (第 2/4 季)。`
+            : `[Stage 2 Warning] Cash negative for 2 consecutive quarters! CapEx frozen! Utilize emergency rescue loans (Quarter 2/4).`;
+        } else if (G.consecutiveNegativeQuarters === 3) {
+          banner.classList.remove('hidden');
+          text.innerText = currentLang === 'zh'
+            ? `【极危状态】现金储备连续 3 季为负！信用评级遭下调，距离破产清算仅剩最后 1 季度！`
+            : `[Stage 3 Critical] Cash negative for 3 quarters! Credit downgraded, 1 quarter remaining before bankruptcy!`;
+        } else if (G.consecutiveNegativeQuarters >= 4) {
+          showGameOver(false, currentLang === 'zh' 
+            ? "【破产清算】账面现金储备连续 4 个季度小于零，无法偿付债务本息与刚性折旧，债权人启动清算程序。"
+            : "Bankruptcy Liquidation: Cash reserves remained negative for 4 consecutive quarters. Creditors initiated Chapter 7 liquidation.");
+          return;
+        }
+      } else {
+        if (G.consecutiveNegativeQuarters > 0) {
+          logNews(currentLang === 'zh'
+            ? "财务危机解除：现金储备成功回归正轨，债务宽限警报解除！"
+            : "Solvency Restored: Cash reserves returned positive, debt grace period lifted!");
+        }
+        G.consecutiveNegativeQuarters = 0;
+        banner.classList.add('hidden');
+      }
+    }
+
+    /* Annual Master Supply Agreement (LTA) Tender Screen with 30% Upfront Prepayment */
+    function openAnnualBiddingModal(nextYear) {
+      const modal = document.getElementById('modalBidding');
+      document.getElementById('biddingTitleYear').innerText = currentLang === 'zh' 
+        ? `${nextYear} 年度全球晶圆长协招标大会` 
+        : `${nextYear} Global Wafer LTA Master Bidding Conference`;
+      
+      const list = document.getElementById('biddingTendersList');
+      list.innerHTML = '';
+
+      const qualifiedNodes = G.nodes.filter(n => n.status === 'mass' || (n.status === 'risk' && n.yield >= 50));
+      const clientTenders = [
+        {
+          id: 'apple',
+          client: currentLang === 'zh' ? 'Fruit 移动终端巨头' : 'Fruit Corp (Mobile Titan)',
+          type: 'consumer',
+          desc_zh: '每年秋季新机发售需要天量保底。要求承诺节点良率 ≥ 75%。',
+          desc_en: 'Massive annual smartphone volume. Requires committed node yield ≥ 75%.',
+          recommendedNode: qualifiedNodes[qualifiedNodes.length - 1].id,
+          volumeWpm: 50,
+          baseBidPrice: Math.round(qualifiedNodes[qualifiedNodes.length - 1].baseAsp * 1.05)
+        },
+        {
+          id: 'server',
+          client: currentLang === 'zh' ? '通用云端超算与企业级数据中心' : 'Cloud Hyperscaler Servers',
+          type: 'datacenter',
+          desc_zh: '高可靠性服务器芯片，采购平稳，良率要求 ≥ 68%。',
+          desc_en: 'Mission-critical server silicon with stable volume, yield ≥ 68%.',
+          recommendedNode: qualifiedNodes[Math.max(0, qualifiedNodes.length - 2)].id,
+          volumeWpm: 40,
+          baseBidPrice: qualifiedNodes[Math.max(0, qualifiedNodes.length - 2)].baseAsp
+        }
+      ];
+
+      // If Year >= 2021, add AI GPU Hyperscaler tender!
+      if (nextYear >= 2021 && G.hasCoWoS) {
+        const topNode = qualifiedNodes[qualifiedNodes.length - 1];
+        clientTenders.push({
+          id: 'ai_titan',
+          client: currentLang === 'zh' ? 'Nova 算力加速卡新贵 (AI GPU)' : 'Nova Silicon (AI Accelerators)',
+          type: 'ai',
+          desc_zh: '天量大模型芯片订单！对价格完全不敏感，强绑定先进制程与 CoWoS 封装。',
+          desc_en: 'Explosive LLM AI chip orders! Price-inelastic, strictly requires advanced node & CoWoS.',
+          recommendedNode: topNode.id,
+          volumeWpm: 35,
+          baseBidPrice: Math.round(topNode.baseAsp * 1.50)
+        });
+      }
+
+      window.currentTenders = clientTenders;
+
+      clientTenders.forEach((tender, idx) => {
+        const card = document.createElement('div');
+        card.className = "bg-slate-950 p-3.5 rounded-xl border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3";
+        const advanceMoney = (tender.volumeWpm * 12 * tender.baseBidPrice * 0.30 * 1000) / 1e9;
+        
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-white text-xs">${tender.client}</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-cyan-300">${tender.volumeWpm}k wpm</span>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">${currentLang === 'zh' ? tender.desc_zh : tender.desc_en}</p>
+            <div class="mt-2 flex items-center gap-2 text-xs font-mono">
+              <span class="text-slate-500">${currentLang === 'zh' ? '竞标节点:' : 'Node:'}</span>
+              <select id="selectBidNode_${idx}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200">
+                ${qualifiedNodes.map(n => `<option value="${n.id}" ${n.id === tender.recommendedNode ? 'selected' : ''}>${n.name} (Yield ${n.yield}%)</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div class="text-right sm:text-right flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto">
+            <div class="text-xs font-mono">
+              <span class="text-slate-400">${currentLang === 'zh' ? '片均出价:' : 'ASP:'}</span>
+              <span class="text-emerald-400 font-bold">$${tender.baseBidPrice.toLocaleString()}</span>
+            </div>
+            <div class="text-[11px] font-mono text-cyan-400 mt-1">
+              ${currentLang === 'zh' ? '30% 预付款定金:' : '30% Advance:'} +$${advanceMoney.toFixed(2)}B
+            </div>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+
+      // Calculate total 30% advance payment
+      let sumAdvance = 0;
+      clientTenders.forEach(t => {
+        sumAdvance += (t.volumeWpm * 12 * t.baseBidPrice * 0.30 * 1000) / 1e9;
+      });
+      document.getElementById('biddingTotalAdvance').innerText = `$${sumAdvance.toFixed(2)}B`;
+
+      modal.classList.remove('hidden');
+    }
+
+    function confirmAnnualBids() {
+      if (!window.currentTenders) return;
+      let totalAdvanceCollected = 0;
+
+      window.currentTenders.forEach((tender, idx) => {
+        const selElem = document.getElementById(`selectBidNode_${idx}`);
+        const selectedNodeId = selElem ? selElem.value : tender.recommendedNode;
+        const advance = (tender.volumeWpm * 12 * tender.baseBidPrice * 0.30 * 1000) / 1e9;
+        totalAdvanceCollected += advance;
+
+        G.activeContracts.push({
+          client: tender.client,
+          node: selectedNodeId,
+          committedMonthly: tender.volumeWpm,
+          price: tender.baseBidPrice,
+          quartersLeft: 4
+        });
+      });
+
+      G.cash = Number((G.cash + totalAdvanceCollected).toFixed(2));
+      logNews(currentLang === 'zh'
+        ? `年度长协签署完毕：成功揽获 ${window.currentTenders.length} 家核心客户订单，30% 预付定金 +$${totalAdvanceCollected.toFixed(2)}B 即时到账！`
+        : `LTA Agreements Signed: Secured contracts with ${window.currentTenders.length} tier-1 clients. 30% upfront cash advance +$${totalAdvanceCollected.toFixed(2)}B received!`);
+      
+      document.getElementById('modalBidding').classList.add('hidden');
+      updateAllUI();
+      playSound('win');
+    }
+
+    function showDilemma(title, desc, options) {
+      const modal = document.getElementById('modalDilemma');
+      document.getElementById('dilemmaTitle').innerText = title;
+      document.getElementById('dilemmaDesc').innerText = desc;
+      const container = document.getElementById('dilemmaOptions');
+      container.innerHTML = '';
+
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = "w-full text-left p-3 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 hover:border-amber-500 transition text-xs font-semibold text-slate-100 flex items-center justify-between group";
+        btn.innerHTML = `
+          <span>${opt.text}</span>
+          <i class="ph-bold ph-arrow-right text-slate-400 group-hover:text-amber-400 transition"></i>
+        `;
+        btn.onclick = () => {
+          opt.action();
+          modal.classList.add('hidden');
+          updateAllUI();
+          playSound('click');
+        };
+        container.appendChild(btn);
+      });
+
+      modal.classList.remove('hidden');
+    }
+
+    /* UI Updating and View Synchronization */
+    function updateAllUI(rev = 6.2, deprec = 1.20, margin = 3.3, fcf = 1.85, contractRev = 5.1, spotRev = 1.1, leadNode = G.nodes[0]) {
+      const year = 2014 + Math.floor((G.quarter - 1) / 4);
+      const qNum = ((G.quarter - 1) % 4) + 1;
+
+      // Header HUD
+      document.getElementById('hudQuarter').innerText = `${year} ${currentLang === 'zh' ? '第' + qNum + '季度' : 'Q' + qNum} (${G.quarter}/48)`;
+      document.getElementById('hudCash').innerText = `$${G.cash.toFixed(2)}B`;
+      document.getElementById('hudCash').className = `font-bold text-sm ${G.cash >= 0 ? 'text-emerald-400' : 'text-rose-400 font-mono animate-pulse'}`;
+      document.getElementById('hudRev').innerText = `$${rev.toFixed(2)}B`;
+      document.getElementById('hudFcf').innerText = `${fcf >= 0 ? '+' : ''}$${fcf.toFixed(2)}B`;
+      document.getElementById('hudFcf').className = `font-bold ${fcf >= 0 ? 'text-indigo-400' : 'text-rose-400'}`;
+      document.getElementById('hudCap').innerText = `${G.totalCapacityWpm}k wpm`;
+
+      // Stat Cards
+      document.getElementById('statRev').innerText = `$${rev.toFixed(2)}B`;
+      document.getElementById('statContractRev').innerText = `$${contractRev.toFixed(2)}B`;
+      document.getElementById('statSpotRev').innerText = `$${spotRev.toFixed(2)}B`;
+      document.getElementById('statDeprec').innerText = `$${deprec.toFixed(2)}B`;
+      document.getElementById('statTotalAssets').innerText = G.totalFixedAssets.toFixed(1);
+      
+      const marginPct = rev > 0 ? ((margin / rev) * 100).toFixed(1) : '0.0';
+      document.getElementById('statMargin').innerText = `${marginPct}%`;
+      document.getElementById('statPrimaryYield').innerText = `${leadNode.yield}%`;
+      document.getElementById('statMarketShare').innerText = `${G.marketShare.toFixed(1)}%`;
+
+      // Fabs & Equipment Tab
+      document.getElementById('valDuvTools').innerText = `${G.duvTools} ${currentLang === 'zh' ? '台' : 'Units'}`;
+      document.getElementById('valEuvTools').innerText = `${G.euvTools} ${currentLang === 'zh' ? '台' : 'Units'} ${G.pendingEuv > 0 ? (currentLang === 'zh' ? `(在途 ${G.pendingEuv} 台)` : `(${G.pendingEuv} pending)`) : ''}`;
+      document.getElementById('valTotalCap').innerText = `${G.totalCapacityWpm}k wpm`;
+      document.getElementById('valPendingCap').innerText = `${G.pendingCapacity}k wpm`;
+
+      // CoWoS Badge
+      const badgeC = document.getElementById('badgeCoWoS');
+      const btnC = document.getElementById('btnInvestCoWoS');
+      if (G.hasCoWoS) {
+        badgeC.innerText = currentLang === 'zh' ? '已量产通线' : 'Operational';
+        badgeC.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800';
+        btnC.disabled = true;
+        btnC.className = 'px-4 py-2 bg-slate-800 text-slate-500 rounded-lg text-xs font-bold cursor-not-allowed';
+      }
+
+      // R&D Budget Slider readout
+      document.getElementById('labelRdBudgetPct').innerText = `${G.rdBudgetPct}%`;
+      document.getElementById('labelRdTotalDollars').innerText = `$${Math.max(0.7, (rev * (G.rdBudgetPct / 100))).toFixed(2)}B`;
+
+      // Market Curves Display
+      document.getElementById('marketValConsumer').innerText = `${Math.round(getConsumerDemandFactor(year, qNum) * 100)} ${currentLang === 'zh' ? '点' : 'pts'} (${(qNum >= 3 ? (currentLang === 'zh' ? '旺季' : 'Peak') : (currentLang === 'zh' ? '淡季' : 'Off-peak'))})`;
+      document.getElementById('marketValAi').innerText = `${Math.round(getAiDemandFactor(G.quarter) * 25)} ${currentLang === 'zh' ? '点' : 'pts'} (${G.quarter >= 28 ? (currentLang === 'zh' ? '指数爆发' : 'Surging') : (currentLang === 'zh' ? '平稳' : 'Stable')})`;
+
+      renderNodeCards();
+      renderActiveContracts();
+      renderAssetsTable(deprec);
+    }
+
+    function renderNodeCards() {
+      const container = document.getElementById('nodeGrid');
+      container.innerHTML = '';
+
+      G.nodes.forEach(node => {
+        const card = document.createElement('div');
+        card.className = "bg-slate-950 p-3.5 rounded-xl border border-slate-800 flex flex-col justify-between";
+
+        let statusBadge = "";
+        let actionBtn = "";
+
+        if (node.status === 'mass') {
+          statusBadge = `<span class="text-[10px] bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded border border-emerald-800 font-mono font-bold">${currentLang === 'zh' ? '成熟量产' : 'Mass Production'}</span>`;
+        } else if (node.status === 'risk') {
+          statusBadge = `<span class="text-[10px] bg-amber-950 text-amber-300 px-2 py-0.5 rounded border border-amber-800 font-mono font-bold">${currentLang === 'zh' ? '风险试产' : 'Risk Production'}</span>`;
+        } else if (node.status === 'rd') {
+          statusBadge = `<span class="text-[10px] bg-cyan-950 text-cyan-300 px-2 py-0.5 rounded border border-cyan-800 font-mono">${currentLang === 'zh' ? '攻关研发中' : 'R&D In-Progress'}</span>`;
+        } else {
+          statusBadge = `<span class="text-[10px] bg-slate-900 text-slate-500 px-2 py-0.5 rounded font-mono">${currentLang === 'zh' ? '未立项' : 'Unallocated'}</span>`;
+          actionBtn = `<button onclick="startNodeRd('${node.id}')" class="mt-2 w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-300 rounded text-xs font-mono transition">${currentLang === 'zh' ? '立项开启研发' : 'Authorize Project'}</button>`;
+        }
+
+        const nodeDesc = currentLang === 'zh' ? node.desc_zh : node.desc_en;
+
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-bold text-slate-100 text-xs flex items-center gap-1.5">
+                ${node.requiresEuv ? '<i class="ph-bold ph-lightning text-amber-400" title="Requires EUV"></i>' : ''}
+                ${node.name}
+              </span>
+              ${statusBadge}
+            </div>
+            <p class="text-[10px] text-slate-400 mt-1">${nodeDesc}</p>
+          </div>
+
+          <div class="mt-3 pt-2 border-t border-slate-800/80">
+            ${node.status === 'rd' ? `
+              <div class="flex justify-between text-[11px] font-mono text-cyan-400 mb-1">
+                <span>${currentLang === 'zh' ? '研发流片进度' : 'Tape-out Progress'}</span>
+                <span>${Math.round(node.rdProgress)}%</span>
+              </div>
+              <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                <div class="bg-cyan-500 h-full rounded-full transition-all duration-300" style="width: ${node.rdProgress}%"></div>
+              </div>
+            ` : ''}
+
+            ${(node.status === 'risk' || node.status === 'mass') ? `
+              <div class="flex justify-between text-[11px] font-mono mb-1">
+                <span class="text-slate-400">${currentLang === 'zh' ? '良率:' : 'Yield:'} <strong class="${node.yield >= 70 ? 'text-emerald-400' : 'text-amber-400'}">${node.yield}%</strong></span>
+                <span class="text-slate-500">ASP: $${node.baseAsp.toLocaleString()}</span>
+              </div>
+              <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                <div class="${node.yield >= 70 ? 'bg-emerald-500' : 'bg-amber-400'} h-full rounded-full transition-all duration-300" style="width: ${node.yield}%"></div>
+              </div>
+            ` : ''}
+
+            ${actionBtn}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      const activeNodes = G.nodes.filter(n => n.status === 'mass');
+      const lead = activeNodes[activeNodes.length - 1] || G.nodes[0];
+      document.getElementById('tabBadgeNodes').innerText = lead.name.split(' ')[0];
+    }
+
+    function startNodeRd(nodeId) {
+      const node = G.nodes.find(n => n.id === nodeId);
+      if (!node) return;
+      node.status = 'rd';
+      node.rdProgress = 5;
+      logNews(currentLang === 'zh' 
+        ? `研发立项：自主启动了 ${node.name} 的研发攻坚课题！`
+        : `Project Authorized: Initiated active R&D for ${node.name}!`);
+      playSound('click');
+      renderNodeCards();
+    }
+
+    function renderActiveContracts() {
+      const container = document.getElementById('activeContractsList');
+      container.innerHTML = '';
+
+      if (G.activeContracts.length === 0) {
+        container.innerHTML = `<div class="text-xs text-slate-500 font-mono p-4">${currentLang === 'zh' ? '暂无履约中长协。每年 Q4 开放次年竞标。' : 'No active LTAs. Bidding opens every Q4.'}</div>`;
+        return;
+      }
+
+      G.activeContracts.forEach(contract => {
+        const card = document.createElement('div');
+        card.className = "bg-slate-950 p-3 rounded-lg border border-slate-800 flex flex-col justify-between text-xs font-mono";
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-slate-200">${contract.client}</span>
+              <span class="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-cyan-300">${contract.node}</span>
+            </div>
+            <div class="text-[11px] text-slate-400 mt-1">${currentLang === 'zh' ? '供货量:' : 'Volume:'} ${contract.committedMonthly}k wpm</div>
+          </div>
+          <div class="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-slate-500 text-[10px]">
+            <span>ASP: $${contract.price.toLocaleString()}</span>
+            <span class="text-amber-400">${contract.quartersLeft} ${currentLang === 'zh' ? '季剩余' : 'Qs left'}</span>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderAssetsTable(deprec) {
+      const tbody = document.getElementById('tableAssetsBody');
+      tbody.innerHTML = `
+        <tr>
+          <td class="p-2.5 font-bold text-white">${currentLang === 'zh' ? 'DUV 浸润式光刻产线' : 'DUV Scanner Lines'}</td>
+          <td class="p-2.5">${G.duvTools} ${currentLang === 'zh' ? '台' : 'Units'}</td>
+          <td class="p-2.5">$${(G.duvTools * 0.06).toFixed(2)}B</td>
+          <td class="p-2.5 text-rose-400">$${(G.duvTools * 0.06 * 0.05).toFixed(3)}B</td>
+          <td class="p-2.5 text-emerald-400">${currentLang === 'zh' ? '稼动率 96%' : 'Uptime 96%'}</td>
+        </tr>
+        <tr>
+          <td class="p-2.5 font-bold text-white">${currentLang === 'zh' ? 'EUV 极紫外光刻产线' : 'EUV Scanner Lines'}</td>
+          <td class="p-2.5">${G.euvTools} ${currentLang === 'zh' ? '台' : 'Units'}</td>
+          <td class="p-2.5">$${(G.euvTools * 0.18).toFixed(2)}B</td>
+          <td class="p-2.5 text-rose-400">$${(G.euvTools * 0.18 * 0.05).toFixed(3)}B</td>
+          <td class="p-2.5 text-cyan-400">${G.euvTools > 0 ? (currentLang === 'zh' ? '全速运转' : 'Online') : (currentLang === 'zh' ? '未装备' : 'None')}</td>
+        </tr>
+        <tr>
+          <td class="p-2.5 font-bold text-white">${currentLang === 'zh' ? 'GigaFab 洁净室建筑群' : 'GigaFab Cleanrooms'}</td>
+          <td class="p-2.5">${G.totalCapacityWpm}k wpm</td>
+          <td class="p-2.5">$${(G.totalCapacityWpm * 0.18).toFixed(2)}B</td>
+          <td class="p-2.5 text-rose-400">$${(G.totalCapacityWpm * 0.18 * 0.05).toFixed(3)}B</td>
+          <td class="p-2.5 text-emerald-400">${currentLang === 'zh' ? '状态优良' : 'Class-1 Clean'}</td>
+        </tr>
+      `;
+    }
+
+    function updateCharts() {
+      if (chartFinance) {
+        chartFinance.data.labels = G.history.labels;
+        chartFinance.data.datasets[0].data = G.history.revenue;
+        chartFinance.data.datasets[1].data = G.history.fcf;
+        chartFinance.data.datasets[2].data = G.history.cash;
+        chartFinance.update();
+      }
+
+      if (chartYield) {
+        chartYield.data.labels = G.history.labels;
+        chartYield.data.datasets[0].data = G.history.leadYield;
+        chartYield.update();
+      }
+    }
+
+    function logNews(message) {
+      const year = 2014 + Math.floor((G.quarter - 1) / 4);
+      const qNum = ((G.quarter - 1) % 4) + 1;
+      const feed = document.getElementById('fullNewsHistory');
+      const item = document.createElement('div');
+      item.className = "p-2 rounded bg-slate-950 border border-slate-800 text-slate-300 leading-snug";
+      item.innerHTML = `<span class="text-cyan-400 font-bold mr-1">[${year} Q${qNum}]</span> ${message}`;
+      feed.insertBefore(item, feed.firstChild);
+    }
+
+    /* Game Over & Endings Evaluation */
+    function showGameOver(isSuccess, message) {
+      const modal = document.getElementById('modalEndGame');
+      const icon = document.getElementById('endGameIcon');
+      const title = document.getElementById('endGameTitle');
+      const desc = document.getElementById('endGameDesc');
+
+      if (!isSuccess) {
+        icon.className = "w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl mb-4 bg-rose-500/20 text-rose-400 border border-rose-500/40";
+        icon.innerHTML = `<i class="ph-bold ph-skull"></i>`;
+        title.innerText = currentLang === 'zh' ? "企业破产清算 (Chapter 11)" : "Bankruptcy Liquidation (Chapter 11)";
+        desc.innerText = message;
+      } else {
+        icon.className = "w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl mb-4 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40";
+        icon.innerHTML = `<i class="ph-bold ph-trophy"></i>`;
+        title.innerText = currentLang === 'zh' ? "48 季度征程圆满达成" : "48 Quarters Completed Triumphant";
+        desc.innerText = message;
+      }
+
+      document.getElementById('endStatCash').innerText = `$${G.cash.toFixed(2)}B`;
+      document.getElementById('endStatShare').innerText = `${G.marketShare.toFixed(1)}%`;
+      const massNodes = G.nodes.filter(n => n.status === 'mass');
+      const topNode = massNodes[massNodes.length - 1] || G.nodes[0];
+      document.getElementById('endStatNode').innerText = topNode.name;
+      document.getElementById('endStatQuarters').innerText = `${G.quarter}/48`;
+
+      modal.classList.remove('hidden');
+    }
+
+    function evaluateGameEnding() {
+      const massNodes = G.nodes.filter(n => n.status === 'mass');
+      const topNode = massNodes[massNodes.length - 1] || G.nodes[0];
+
+      if (G.cash >= 35.0 && (topNode.id === '3nm' || topNode.id === '2nm')) {
+        showGameOver(true, currentLang === 'zh'
+          ? "【结局 A：晶圆霸权 (Wafer Sovereign)】你重现了台积电的巅峰史诗！跨越 7nm/5nm/3nm 并凭借 CoWoS 先进封装包圆了全球顶级 AI 算力订单，现金储备破 $35B！"
+          : "Ending A: Wafer Sovereign! You triumphed with 3nm/2nm mass production, dominating >75% of global AI accelerator packaging orders with over $35B cash reserves!");
+      } else if (G.mode === 'T' && (topNode.id === '3nm' || topNode.id === '2nm') && G.cash >= 20.0) {
+        showGameOver(true, currentLang === 'zh'
+          ? "【结局 B：蓝色巨人的复兴 (The Blue Renaissance)】在 T 模式 (Intel) 下，你成功攻克了 10nm 物理陷阱，量产全环绕栅极与先进制程，守护住了全球服务器算力统治地位！"
+          : "Ending B: The Blue Renaissance! In Mode T (Intel), you conquered the 10nm scaling hurdle, ramped GAA nanosheets and revived the x86 compute empire!");
+      } else if (topNode.level <= 2) {
+        showGameOver(true, currentLang === 'zh'
+          ? "【结局 C：成熟工艺收割者 (Mature Node Specialist)】你明智地避开了惨烈的先进制程军备竞赛，深耕 14nm/12nm 成熟特色工艺，现金流健康稳健（格芯路线）！"
+          : "Ending C: Mature Node Specialist! You avoided the brutal sub-7nm CapEx war and harvested massive risk-free cash flows on mature nodes (GlobalFoundries path)!");
+      } else {
+        showGameOver(true, currentLang === 'zh'
+          ? "【标准结局：半导体坚守者】你经历了 48 个季度的金融风暴与疫情冲击，在充满物理极限与高昂折旧的芯片战场中屹立不倒！"
+          : "Standard Ending: Silicon Vanguard! You steered your semiconductor giant through 48 turbulent quarters of pandemics and financial crises!");
+      }
+    }
+
+    /* Event Listeners Initialization */
+    document.addEventListener('DOMContentLoaded', () => {
+      // Tab Navigation Switching
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach(b => {
+            b.classList.remove('border-cyan-500', 'text-cyan-400');
+            b.classList.add('border-transparent', 'text-slate-400');
+          });
+          btn.classList.add('border-cyan-500', 'text-cyan-400');
+          btn.classList.remove('border-transparent', 'text-slate-400');
+
+          const target = btn.getAttribute('data-target');
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+          const targetContent = document.getElementById(target);
+          if (targetContent) targetContent.classList.remove('hidden');
+          playSound('click');
+        });
+      });
+
+      // Advance Quarter Button
+      document.getElementById('btnAdvanceQuarter').addEventListener('click', advanceQuarter);
+
+      // Sound Toggle Button
+      document.getElementById('btnSoundToggle').addEventListener('click', () => {
+        isSoundEnabled = !isSoundEnabled;
+        const icon = document.getElementById('btnSoundToggle').querySelector('i');
+        if (isSoundEnabled) {
+          icon.className = 'ph-bold ph-speaker-high text-base text-cyan-400';
+          playSound('click');
+        } else {
+          icon.className = 'ph-bold ph-speaker-slash text-base text-slate-500';
+        }
+      });
+
+      // R&D Budget Slider
+      const slider = document.getElementById('sliderRdPct');
+      slider.addEventListener('input', (e) => {
+        G.rdBudgetPct = parseInt(e.target.value);
+        updateAllUI();
+      });
+
+      // Cleanroom Fab Construction Button ($1.80B)
+      document.getElementById('btnBuildFab').addEventListener('click', () => {
+        if (G.cash < 1.80) {
+          logNews(currentLang === 'zh' ? "财务警报：可用资金不足 $1.80B，无法启动 GigaFab 扩建。" : "Financial Warning: Insufficient funds ($1.80B) to expand GigaFab cleanrooms.");
+          playSound('warn');
+          return;
+        }
+        G.cash = Number((G.cash - 1.80).toFixed(2));
+        G.pendingCapacity += 10;
+        G.pendingCapacityTimer = 4;
+        G.totalFixedAssets += 1.80;
+        logNews(currentLang === 'zh' ? "资本开支批准：动工建造 10k wpm 洁净室 (工期 4季)。" : "CapEx Approved: Ground broken on 10k wpm cleanrooms (4Q lead time).");
+        playSound('click');
+        updateAllUI();
+      });
+
+      // Buy DUV Machines ($0.12B)
+      document.getElementById('btnBuyDuv').addEventListener('click', () => {
+        if (G.cash < 0.12) {
+          logNews(currentLang === 'zh' ? "财务警报：资金不足 $0.12B，无法购置 DUV 机台。" : "Financial Warning: Insufficient funds ($0.12B) to buy DUV scanners.");
+          playSound('warn');
+          return;
+        }
+        G.cash = Number((G.cash - 0.12).toFixed(2));
+        G.duvTools += 2;
+        G.totalCapacityWpm += 5;
+        G.totalFixedAssets += 0.12;
+        logNews(currentLang === 'zh' ? "采购成功：增购 2 台 193nm DUV 浸润式机台，成熟产能 +5k wpm。" : "Purchased 2 DUV immersion scanners, boosting mature capacity +5k wpm.");
+        playSound('click');
+        updateAllUI();
+      });
+
+      // Buy EUV Scanner Batch ($0.35B)
+      document.getElementById('btnBuyEuv').addEventListener('click', () => {
+        if (G.cash < 0.35) {
+          logNews(currentLang === 'zh' ? "财务警报：资金不足 $0.35B，无法预订 EUV 极紫外光刻机。" : "Financial Warning: Insufficient funds ($0.35B) to pre-order EUV batch.");
+          playSound('warn');
+          return;
+        }
+        G.cash = Number((G.cash - 0.35).toFixed(2));
+        G.pendingEuv += 2;
+        G.pendingEuvTimer = 2;
+        G.totalFixedAssets += 0.35;
+        logNews(currentLang === 'zh' ? "采购下发：向 ASML 订购 2 台 0.33 NA EUV 极紫外光刻机 (交期 2季)。" : "Order Placed: Pre-ordered 2 EUV scanners from ASML (2Q delivery queue).");
+        playSound('click');
+        updateAllUI();
+      });
+
+      // Invest CoWoS Packaging Button ($1.20B)
+      document.getElementById('btnInvestCoWoS').addEventListener('click', () => {
+        if (G.cash < 1.20) {
+          logNews(currentLang === 'zh' ? "财务警报：资金不足 $1.20B，无法投建 CoWoS 封装无尘室。" : "Financial Warning: Insufficient funds ($1.20B) to construct CoWoS lines.");
+          playSound('warn');
+          return;
+        }
+        G.cash = Number((G.cash - 1.20).toFixed(2));
+        G.hasCoWoS = true;
+        G.totalFixedAssets += 1.20;
+        logNews(currentLang === 'zh' ? "战略落地：CoWoS 2.5D 先进晶圆级封装产线落成！" : "Strategic Victory: CoWoS 2.5D packaging cleanrooms completed!");
+        playSound('win');
+        updateAllUI();
+      });
+
+      // Confirm Annual Bids Button
+      document.getElementById('btnConfirmBids').addEventListener('click', confirmAnnualBids);
+
+      // Emergency Rescue Modal Trigger
+      document.getElementById('btnEmergencyRescue').addEventListener('click', () => {
+        document.getElementById('modalEmergency').classList.remove('hidden');
+      });
+
+      // Emergency Rescue Option 1: Bridge Loan ($2.50B)
+      document.getElementById('btnLoanRescue').addEventListener('click', () => {
+        G.cash = Number((G.cash + 2.5).toFixed(2));
+        G.bridgeLoanDebt += 2.5;
+        logNews(currentLang === 'zh' ? "紧急融资：融入 $2.50B 过桥贷款，每季扣息 6%。" : "Emergency Financing: Secured $2.50B bridge loan at 6% quarterly interest.");
+        document.getElementById('modalEmergency').classList.add('hidden');
+        playSound('win');
+        checkFinancialSafety();
+        updateAllUI();
+      });
+
+      // Emergency Rescue Option 2: Sell Secondary DUV
+      document.getElementById('btnSellDuvRescue').addEventListener('click', () => {
+        if (G.duvTools < 5) {
+          logNews(currentLang === 'zh' ? "自救失败：二手 DUV 机台不足，无法抛售。" : "Rescue Failed: Insufficient DUV tools to liquidate.");
+          return;
+        }
+        G.duvTools -= 5;
+        G.totalCapacityWpm = Math.max(25, G.totalCapacityWpm - 10);
+        G.cash = Number((G.cash + 0.25).toFixed(2));
+        logNews(currentLang === 'zh' ? "资产处置：折价抛售 5 台 DUV 光刻机，回笼 $0.25B。" : "Tool Liquidation: Sold 5 used DUV scanners for $0.25B cash.");
+        document.getElementById('modalEmergency').classList.add('hidden');
+        playSound('click');
+        checkFinancialSafety();
+        updateAllUI();
+      });
+    });
+  </script>
+</body>
+</html>
